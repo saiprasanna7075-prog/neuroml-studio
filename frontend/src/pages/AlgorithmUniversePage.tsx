@@ -1,9 +1,30 @@
-import React, { useState } from 'react';
-import { Search, Play, BookOpen, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Play,
+  BookOpen,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Loader2,
+  Sparkles,
+  Database,
+  BarChart2,
+  Download,
+  ArrowRight,
+  Sliders,
+  Check
+} from 'lucide-react';
+import { DatasetSummary, ModelMetricsResponse } from '../types';
+import { fetchDatasets, trainModel } from '../services/api';
+import { ConfusionMatrixChart } from '../components/charts/ConfusionMatrixChart';
+import { FeatureImportanceChart } from '../components/charts/FeatureImportanceChart';
 
 interface AlgorithmUniverseProps {
-  onTrainModel: (algorithmId: string) => void;
-  onLearnMore: (algorithmId: string) => void;
+  onTrainModel?: (algorithmId: string) => void;
+  onLearnMore?: (algorithmId: string) => void;
 }
 
 interface AlgorithmItem {
@@ -483,8 +504,8 @@ const CategoryBadge: React.FC<{ group: 'Regression' | 'Classification' }> = ({ g
 
 const AlgorithmCard: React.FC<{
   alg: AlgorithmItem;
-  onTrain: (id: string) => void;
-  onLearn: (id: string) => void;
+  onTrain: (alg: AlgorithmItem) => void;
+  onLearn: (alg: AlgorithmItem) => void;
 }> = ({ alg, onTrain, onLearn }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -497,7 +518,7 @@ const AlgorithmCard: React.FC<{
             <CategoryBadge group={alg.group} />
             {alg.implemented ? (
               <span className="flex items-center gap-1 text-xs text-emerald-400">
-                <CheckCircle2 size={11} /> Live
+                <CheckCircle2 size={11} /> Live & Trainable
               </span>
             ) : (
               <span className="flex items-center gap-1 text-xs text-amber-400">
@@ -510,7 +531,7 @@ const AlgorithmCard: React.FC<{
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-white/30 hover:text-violet-400 transition-colors mt-1 flex-shrink-0"
+          className="text-white/30 hover:text-violet-400 transition-colors mt-1 flex-shrink-0 cursor-pointer"
           aria-label="Toggle details"
         >
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -566,19 +587,19 @@ const AlgorithmCard: React.FC<{
       {/* Actions */}
       <div className="px-4 pb-4 flex gap-2">
         <button
-          onClick={() => onTrain(alg.id)}
+          onClick={() => onTrain(alg)}
           disabled={!alg.implemented}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             alg.implemented
-              ? 'bg-violet-600 hover:bg-violet-500 text-white'
+              ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/30'
               : 'bg-white/5 text-white/30 cursor-not-allowed'
           }`}
         >
           <Play size={11} /> Train Model
         </button>
         <button
-          onClick={() => onLearn(alg.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all border border-white/10"
+          onClick={() => onLearn(alg)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all border border-white/10 cursor-pointer"
         >
           <BookOpen size={11} /> Learn More
         </button>
@@ -587,9 +608,88 @@ const AlgorithmCard: React.FC<{
   );
 };
 
-export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrainModel, onLearnMore }) => {
+export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<'All' | 'Regression' | 'Classification'>('All');
+  
+  // Datasets & Interactive Modal state
+  const [datasets, setDatasets] = useState<DatasetSummary[]>([]);
+  const [trainingAlgo, setTrainingAlgo] = useState<AlgorithmItem | null>(null);
+  const [learningAlgo, setLearningAlgo] = useState<AlgorithmItem | null>(null);
+
+  // Training parameters
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>('wine_combined');
+  const [splitRatio, setSplitRatio] = useState<number>(0.3);
+  const [scaleFeatures, setScaleFeatures] = useState<boolean>(false);
+  const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
+  const [isTraining, setIsTraining] = useState<boolean>(false);
+  const [trainedResult, setTrainedResult] = useState<ModelMetricsResponse | null>(null);
+  const [trainError, setTrainError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDatasets().then(list => {
+      setDatasets(list);
+      const combined = list.find(d => d.id === 'wine_combined');
+      if (combined) {
+        setSelectedDatasetId('wine_combined');
+      } else if (list.length > 0) {
+        setSelectedDatasetId(list[0].id);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleOpenTrainModal = (alg: AlgorithmItem) => {
+    setTrainingAlgo(alg);
+    setTrainedResult(null);
+    setTrainError(null);
+    
+    // Auto-select sensible feature scaling by algorithm family
+    const needsScale = [
+      'knn', 'svm', 'svr', 'logistic', 'linear', 'ridge', 'lasso', 'elastic',
+      'mlp', 'sgd', 'perceptron', 'passive_aggressive', 'bayesian', 'gaussian_process'
+    ].some(k => alg.id.includes(k));
+    setScaleFeatures(needsScale);
+  };
+
+  const handleExecuteTraining = async () => {
+    if (!trainingAlgo) return;
+    setIsTraining(true);
+    setTrainError(null);
+
+    const activeDs = datasets.find(d => d.id === selectedDatasetId);
+    const dsName = activeDs ? activeDs.name : selectedDatasetId;
+
+    try {
+      const res = await trainModel({
+        dataset_id: selectedDatasetId,
+        algorithm: trainingAlgo.id,
+        task_type: trainingAlgo.group.toLowerCase(),
+        target_column: 'quality',
+        test_size: splitRatio,
+        random_state: 42,
+        scale_features: scaleFeatures,
+        remove_duplicates: removeDuplicates,
+        hyperparameters: {},
+        experiment_name: `${trainingAlgo.name} on ${dsName}`
+      });
+      setTrainedResult(res);
+    } catch (e: any) {
+      setTrainError(e.message || 'Model training failed.');
+    } finally {
+      setIsTraining(false);
+    }
+  };
+
+  const handleExportJSON = () => {
+    if (!trainedResult) return;
+    const blob = new Blob([JSON.stringify(trainedResult, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `experiment_${trainedResult.algorithm}_${trainedResult.model_id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const filtered = ALL_ALGORITHMS.filter((a) => {
     const matchSearch =
@@ -603,13 +703,13 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrai
   const classification = filtered.filter((a) => a.group === 'Classification');
 
   return (
-    <div className="space-y-8 p-1">
+    <div className="space-y-8 p-1 relative">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-1">Algorithm Universe</h1>
         <p className="text-white/50">
           {ALL_ALGORITHMS.length} machine learning algorithms — {ALL_ALGORITHMS.filter((a) => a.group === 'Regression').length} Regression,{' '}
-          {ALL_ALGORITHMS.filter((a) => a.group === 'Classification').length} Classification. All live and trainable.
+          {ALL_ALGORITHMS.filter((a) => a.group === 'Classification').length} Classification. All live and trainable with one click.
         </p>
       </div>
 
@@ -630,7 +730,7 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrai
             <button
               key={g}
               onClick={() => setSelectedGroup(g)}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 selectedGroup === g
                   ? 'bg-violet-600 text-white'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
@@ -672,7 +772,12 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrai
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {regression.map((a) => (
-              <AlgorithmCard key={a.id} alg={a} onTrain={onTrainModel} onLearn={onLearnMore} />
+              <AlgorithmCard
+                key={a.id}
+                alg={a}
+                onTrain={handleOpenTrainModal}
+                onLearn={setLearningAlgo}
+              />
             ))}
           </div>
         </section>
@@ -691,7 +796,12 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrai
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {classification.map((a) => (
-              <AlgorithmCard key={a.id} alg={a} onTrain={onTrainModel} onLearn={onLearnMore} />
+              <AlgorithmCard
+                key={a.id}
+                alg={a}
+                onTrain={handleOpenTrainModal}
+                onLearn={setLearningAlgo}
+              />
             ))}
           </div>
         </section>
@@ -703,8 +813,293 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = ({ onTrai
           <p className="text-sm">Try a different keyword or clear the filter.</p>
         </div>
       )}
+
+      {/* ───────────────────────── INTERACTIVE TRAINING MODAL ───────────────────────── */}
+      {trainingAlgo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-[#0f111e] border border-violet-500/40 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl shadow-violet-950/50">
+            {/* Modal Header */}
+            <div className="flex justify-between items-start border-b border-[#22263d] pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <CategoryBadge group={trainingAlgo.group} />
+                  <span className="text-xs font-mono text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 size={12} /> Interactive Training Pipeline
+                  </span>
+                </div>
+                <h2 className="text-2xl font-bold text-white">{trainingAlgo.name}</h2>
+                <p className="text-xs text-slate-400 mt-1">{trainingAlgo.shortDef}</p>
+              </div>
+              <button
+                onClick={() => setTrainingAlgo(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {trainError && (
+              <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono">
+                {trainError}
+              </div>
+            )}
+
+            {/* Pipeline Configuration Form */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#15182a] p-4 rounded-xl border border-[#22263d]">
+              <div>
+                <label className="text-xs font-mono text-slate-400 block mb-1">Choose Dataset:</label>
+                <select
+                  value={selectedDatasetId}
+                  onChange={(e) => setSelectedDatasetId(e.target.value)}
+                  className="w-full bg-[#0f111e] border border-[#22263d] rounded-xl px-3 py-2 text-xs text-cyan-300 font-mono font-bold cursor-pointer"
+                >
+                  {datasets.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} ({d.total_rows.toLocaleString()} rows)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-slate-400 block mb-1">Train/Test Split:</label>
+                <select
+                  value={splitRatio}
+                  onChange={(e) => setSplitRatio(Number(e.target.value))}
+                  className="w-full bg-[#0f111e] border border-[#22263d] rounded-xl px-3 py-2 text-xs text-slate-200 font-mono cursor-pointer"
+                >
+                  <option value={0.3}>70% Train / 30% Test (Standard)</option>
+                  <option value={0.2}>80% Train / 20% Test</option>
+                  <option value={0.25}>75% Train / 25% Test</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-6 pt-1 text-xs font-mono text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={scaleFeatures}
+                    onChange={(e) => setScaleFeatures(e.target.checked)}
+                    className="accent-cyan-400 rounded cursor-pointer"
+                  />
+                  <span>StandardScaler (Leak-free on Train only)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={removeDuplicates}
+                    onChange={(e) => setRemoveDuplicates(e.target.checked)}
+                    className="accent-violet-500 rounded cursor-pointer"
+                  />
+                  <span>Drop Duplicate Rows</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Execute Button */}
+            <button
+              onClick={handleExecuteTraining}
+              disabled={isTraining}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-violet-600/30 cursor-pointer disabled:opacity-50 transition-all"
+            >
+              {isTraining ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Training {trainingAlgo.name}...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 text-cyan-300" />
+                  <span>Execute Model Pipeline & Evaluate</span>
+                </>
+              )}
+            </button>
+
+            {/* Live Evaluation Results */}
+            {trainedResult && (
+              <div className="bg-[#15182a] p-5 rounded-2xl border border-emerald-500/40 space-y-5 animate-in fade-in duration-300">
+                <div className="flex justify-between items-center border-b border-[#22263d] pb-3">
+                  <div>
+                    <span className="text-xs font-mono text-emerald-400 font-bold uppercase flex items-center gap-1.5">
+                      <CheckCircle2 size={13} /> Evaluation Ready ({trainedResult.training_time_ms}ms)
+                    </span>
+                    <h3 className="text-lg font-bold text-white mt-0.5">
+                      {trainedResult.algorithm_name} on {trainedResult.dataset_name}
+                    </h3>
+                  </div>
+
+                  <button
+                    onClick={handleExportJSON}
+                    className="px-3 py-1.5 rounded-lg bg-[#0f111e] hover:bg-[#1d223a] border border-[#22263d] text-cyan-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download size={13} />
+                    <span>Export JSON</span>
+                  </button>
+                </div>
+
+                {/* Metrics Cards */}
+                {trainedResult.classification_metrics ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">Accuracy:</span>
+                      <strong className="text-cyan-400 text-xl font-black">
+                        {(trainedResult.classification_metrics.accuracy * 100).toFixed(2)}%
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">F1 Macro:</span>
+                      <strong className="text-violet-400 text-xl font-black">
+                        {trainedResult.classification_metrics.f1_macro.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">Precision (W):</span>
+                      <strong className="text-emerald-400 text-xl font-black">
+                        {(trainedResult.classification_metrics.precision_weighted * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">Recall (W):</span>
+                      <strong className="text-rose-400 text-xl font-black">
+                        {(trainedResult.classification_metrics.recall_weighted * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+                  </div>
+                ) : trainedResult.regression_metrics ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">R² Score:</span>
+                      <strong className="text-cyan-400 text-xl font-black">
+                        {trainedResult.regression_metrics.r2_score.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">MAE:</span>
+                      <strong className="text-violet-400 text-xl font-black">
+                        {trainedResult.regression_metrics.mae.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">RMSE:</span>
+                      <strong className="text-emerald-400 text-xl font-black">
+                        {trainedResult.regression_metrics.rmse.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
+                      <span className="text-slate-400 block text-[11px]">MSE:</span>
+                      <strong className="text-rose-400 text-xl font-black">
+                        {trainedResult.regression_metrics.mse.toFixed(3)}
+                      </strong>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Confusion Matrix Chart */}
+                {trainedResult.classification_metrics && (
+                  <div className="pt-2">
+                    <ConfusionMatrixChart
+                      matrix={trainedResult.classification_metrics.confusion_matrix}
+                      labels={trainedResult.classification_metrics.labels}
+                    />
+                  </div>
+                )}
+
+                {/* Feature Importances Chart */}
+                {trainedResult.feature_importances && trainedResult.feature_importances.length > 0 && (
+                  <div className="pt-2">
+                    <FeatureImportanceChart importances={trainedResult.feature_importances} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────────────── LEARN MORE MODAL ───────────────────────── */}
+      {learningAlgo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-[#0f111e] border border-cyan-500/40 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl shadow-cyan-950/50">
+            <div className="flex justify-between items-start border-b border-[#22263d] pb-4">
+              <div>
+                <CategoryBadge group={learningAlgo.group} />
+                <h2 className="text-2xl font-bold text-white mt-1">{learningAlgo.name}</h2>
+                <span className="text-xs text-slate-400 font-mono">Theoretical & Algorithmic Blueprint</span>
+              </div>
+              <button
+                onClick={() => setLearningAlgo(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-mono">
+              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-1.5">
+                <span className="text-cyan-400 font-bold uppercase tracking-wider block">Mathematical Foundation:</span>
+                <p className="text-slate-300 leading-relaxed">{learningAlgo.howItWorks}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-[#15182a] p-4 rounded-xl border border-emerald-500/20 space-y-2">
+                  <span className="text-emerald-400 font-bold uppercase tracking-wider block">Key Advantages:</span>
+                  <ul className="space-y-1">
+                    {learningAlgo.advantages.map((adv, i) => (
+                      <li key={i} className="text-slate-300 flex items-start gap-1.5">
+                        <span className="text-emerald-400 font-bold">+</span> {adv}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-[#15182a] p-4 rounded-xl border border-rose-500/20 space-y-2">
+                  <span className="text-rose-400 font-bold uppercase tracking-wider block">Key Limitations:</span>
+                  <ul className="space-y-1">
+                    {learningAlgo.limitations.map((lim, i) => (
+                      <li key={i} className="text-slate-300 flex items-start gap-1.5">
+                        <span className="text-rose-400 font-bold">−</span> {lim}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-1.5">
+                <span className="text-violet-400 font-bold uppercase tracking-wider block">Recommended Use Cases:</span>
+                <p className="text-slate-300 leading-relaxed">{learningAlgo.useCases}</p>
+              </div>
+
+              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-2">
+                <span className="text-amber-400 font-bold uppercase tracking-wider block">Hyperparameter Tuning Guide:</span>
+                <div className="flex flex-wrap gap-2">
+                  {learningAlgo.hyperparameters.map((hp, i) => (
+                    <span key={i} className="px-2.5 py-1 bg-[#0f111e] border border-[#22263d] rounded-lg text-slate-200">
+                      {hp}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-[#22263d]">
+              <button
+                onClick={() => {
+                  const alg = learningAlgo;
+                  setLearningAlgo(null);
+                  handleOpenTrainModal(alg);
+                }}
+                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              >
+                <Play size={12} /> Train This Algorithm Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AlgorithmUniversePage;
+
