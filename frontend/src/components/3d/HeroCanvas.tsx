@@ -348,15 +348,15 @@ export const HeroCanvas: React.FC<HeroCanvasProps> = ({ onExploreClick, onWineAi
           <div className="flex items-center justify-center gap-6 sm:gap-10 pt-6 text-xs text-slate-400 font-mono">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>16+ Algorithms</span>
+              <span>36 ML Algorithms</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-              <span>UCI Wine Benchmark</span>
+              <span>6,497 Combined Wine Dataset</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-              <span>SHAP TreeExplainer</span>
+              <span>SHAP TreeExplainer Active</span>
             </div>
           </div>
         </div>
