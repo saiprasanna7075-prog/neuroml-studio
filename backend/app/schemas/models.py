@@ -42,6 +42,7 @@ class TrainModelRequest(BaseModel):
     remove_duplicates: bool = False
     hyperparameters: Dict[str, Any] = Field(default_factory=dict)
     experiment_name: Optional[str] = None
+    classification_mode: Optional[str] = "multiclass"  # "multiclass" or "binary"
 
 class ModelMetricsResponse(BaseModel):
     model_id: str

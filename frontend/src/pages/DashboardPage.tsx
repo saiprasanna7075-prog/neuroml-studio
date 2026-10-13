@@ -234,7 +234,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       {/* ───────────────────────── 1. 3D HERO CANVAS ───────────────────────── */}
       <div className="relative">
         <HeroCanvas
-          onExploreClick={() => onNavigate('wine')}
+          onExploreClick={() => onNavigate('algorithms')}
           onWineAiClick={() => onNavigate('wine')}
         />
 

@@ -93,11 +93,13 @@ def prepare_data_pipeline(
     remove_duplicates: bool = False,
     test_size: float = 0.3,
     random_state: int = 42,
-    scale_features: bool = False
+    scale_features: bool = False,
+    classification_mode: str = "multiclass"
 ) -> Dict[str, Any]:
     """
     Cleans, validates, splits (default 70:30), and optionally scales dataset.
     Ensures zero data leakage: scaler is fitted strictly on training partition.
+    Supports multiclass (exact 3-9 ratings) and binary (quality >= 6 good vs < 6 standard).
     """
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not found in dataset. Available columns: {list(df.columns)}")
@@ -136,20 +138,24 @@ def prepare_data_pipeline(
         raise ValueError(f"Non-numeric features detected: {non_numeric}. NeuroML Studio currently trains on numerical physicochemical features.")
         
     X = cleaned_df[feature_cols].values
-    y = cleaned_df[target_column].values
     
     if task_type == "classification":
-        # Convert to int or str category
-        if pd.api.types.is_numeric_dtype(cleaned_df[target_column]):
-            y = y.astype(int)
+        if classification_mode == "binary" and target_column == "quality":
+            # Binary classification: 1 for Good (>=6), 0 for Standard/Bad (<6)
+            y = (cleaned_df[target_column] >= 6).astype(int).values
+            stratify = None
         else:
-            y = y.astype(str)
-        stratify = y if len(np.unique(y)) > 1 and min(pd.Series(y).value_counts()) >= 2 else None
+            # Multi-class classification: exact discrete ratings (3-9)
+            if pd.api.types.is_numeric_dtype(cleaned_df[target_column]):
+                y = cleaned_df[target_column].astype(int).values
+            else:
+                y = cleaned_df[target_column].astype(str).values
+            stratify = y if len(np.unique(y)) > 1 and min(pd.Series(y).value_counts()) >= 2 else None
     else:
-        y = y.astype(float)
+        y = cleaned_df[target_column].astype(float).values
         stratify = None
         
-    # Split: default 70:30 (test_size=0.30)
+    # Split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=stratify
     )

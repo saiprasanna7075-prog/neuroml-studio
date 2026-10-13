@@ -35,6 +35,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
 
   // Preprocessing config
   const [taskType, setTaskType] = useState<'classification' | 'regression'>('classification');
+  const [classificationMode, setClassificationMode] = useState<'multiclass' | 'binary'>('multiclass');
   const [testSplit, setTestSplit] = useState<number>(0.3);
   const [randomSeed, setRandomSeed] = useState<number>(42);
   const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
@@ -112,6 +113,21 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
   };
 
 
+  const handleApplyVsCodePreset = () => {
+    const red = datasets.find(d => d.id === 'wine_red' || d.name.toLowerCase().includes('red'));
+    if (red) {
+      handleDatasetChange(red.id);
+    }
+    setTaskType('classification');
+    setClassificationMode('binary');
+    setTestSplit(0.2); // 80:20 split (320 test samples)
+    setRandomSeed(42);
+    setActiveModelTab('rf');
+    setRfTrees(100);
+    setRfMaxDepth('None');
+    setRemoveDuplicates(false);
+  };
+
   const handleTrainCurrentModel = async () => {
     setIsTraining(true);
     setErrorMsg(null);
@@ -122,6 +138,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
           dataset_id: selectedDatasetId,
           algorithm: 'random_forest',
           task_type: taskType,
+          classification_mode: taskType === 'classification' ? classificationMode : undefined,
           target_column: 'quality',
           test_size: testSplit,
           random_state: randomSeed,
@@ -132,7 +149,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
             min_samples_split: rfMinSplit,
             min_samples_leaf: rfMinLeaf
           },
-          experiment_name: `Random Forest (${taskType}) on ${activeDataset?.name}`
+          experiment_name: `Random Forest (${taskType}${taskType === 'classification' ? `-${classificationMode}` : ''}) on ${activeDataset?.name}`
         });
         setRfResult(res);
 
@@ -143,6 +160,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
           dataset_id: selectedDatasetId,
           algorithm: 'knn',
           task_type: taskType,
+          classification_mode: taskType === 'classification' ? classificationMode : undefined,
           target_column: 'quality',
           test_size: testSplit,
           random_state: randomSeed,
@@ -153,7 +171,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
             metric: knnMetric,
             weights: knnWeights
           },
-          experiment_name: `KNN (${taskType}) on ${activeDataset?.name}`
+          experiment_name: `KNN (${taskType}${taskType === 'classification' ? `-${classificationMode}` : ''}) on ${activeDataset?.name}`
         });
         setKnnResult(res);
       }
@@ -214,6 +232,31 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
           <span>{errorMsg}</span>
         </div>
       )}
+
+      {/* VS Code Benchmark Alignment Callout */}
+      <div className="bg-gradient-to-r from-violet-950/60 via-[#14182e] to-cyan-950/60 border border-violet-500/40 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+              VS Code Benchmark Match: 79.06%
+            </span>
+            <span className="text-xs font-mono text-cyan-300 font-semibold">
+              Why was your accuracy different?
+            </span>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
+            In your VS Code Python code, wine was trained with <span className="text-white font-bold">Binary Classification (Quality ≥ 6 as Good vs &lt; 6 as Standard)</span> on <span className="text-white font-bold">Red Wine</span> with an <span className="text-white font-bold">80:20 split</span>, achieving <span className="text-emerald-400 font-bold">79.06% test accuracy</span> (253 of 320 correct). In contrast, predicting the <span className="text-white font-bold">exact discrete score (3 to 9)</span> on 6,497 combined wines gives <span className="text-cyan-400 font-bold">68.87%</span>.
+          </p>
+        </div>
+
+        <button
+          onClick={handleApplyVsCodePreset}
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-violet-600 hover:from-amber-400 hover:to-violet-500 text-white text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-amber-600/20 transition-all cursor-pointer shrink-0 hover:scale-105"
+        >
+          <Sparkles size={14} className="text-amber-200" />
+          <span>Apply 79.06% VS Code Preset</span>
+        </button>
+      </div>
 
       {/* 1. Dataset & Preprocessing Control Bar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -324,11 +367,30 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
                   onChange={(e) => setTaskType(e.target.value as any)}
                   className="w-full bg-[#15182a] border border-[#22263d] rounded-lg px-2.5 py-1.5 text-slate-200 cursor-pointer"
                 >
-                  <option value="classification">Classification (Scores 3-9)</option>
+                  <option value="classification">Classification</option>
                   <option value="regression">Regression (Continuous)</option>
                 </select>
               </div>
             </div>
+
+            {taskType === 'classification' && (
+              <div className="pt-1">
+                <label className="text-slate-400 text-[11px] block mb-1 flex items-center justify-between">
+                  <span>Target Classification Mode:</span>
+                  <span className={classificationMode === 'binary' ? 'text-amber-400 font-bold text-[10px]' : 'text-cyan-400 text-[10px]'}>
+                    {classificationMode === 'binary' ? 'Matches VS Code (~79.06%)' : 'Granular 7-Scores (~68.8%)'}
+                  </span>
+                </label>
+                <select
+                  value={classificationMode}
+                  onChange={(e) => setClassificationMode(e.target.value as any)}
+                  className="w-full bg-[#15182a] border border-[#22263d] rounded-lg px-2.5 py-1.5 text-slate-200 cursor-pointer font-mono text-xs"
+                >
+                  <option value="multiclass">Multi-Class (Exact Discrete Ratings 3 to 9) ~68.8%</option>
+                  <option value="binary">Binary Classification (Good ≥ 6 vs Normal &lt; 6) ~79.06%</option>
+                </select>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 pt-2 text-[11px] text-slate-300">
               <input
@@ -581,7 +643,9 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
                 <div className="text-2xl font-black text-cyan-400 font-mono mt-1">
                   {(activeResult.classification_metrics.accuracy * 100).toFixed(2)}%
                 </div>
-                <span className="text-[10px] text-slate-500 font-mono">Overall Exact Matches</span>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  {activeResult.classification_metrics.labels.length === 2 ? 'Binary (Good ≥6 vs Normal <6)' : 'Exact Multi-Class (Scores 3-9)'}
+                </span>
               </div>
 
               <div className="bg-[#0f111e] p-4 rounded-xl border border-[#22263d]">

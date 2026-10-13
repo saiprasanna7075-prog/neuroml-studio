@@ -32,7 +32,8 @@ class ModelService:
         scale_features: Optional[bool] = None,
         remove_duplicates: bool = False,
         hyperparameters: Optional[Dict[str, Any]] = None,
-        experiment_name: Optional[str] = None
+        experiment_name: Optional[str] = None,
+        classification_mode: str = "multiclass"
     ) -> Dict[str, Any]:
         """Executes full training pipeline, evaluation, artifact persistence, and experiment logging."""
         df = dataset_service.get_dataframe(dataset_id)
@@ -76,7 +77,8 @@ class ModelService:
             remove_duplicates=remove_duplicates,
             test_size=test_size,
             random_state=random_state,
-            scale_features=apply_scaling
+            scale_features=apply_scaling,
+            classification_mode=classification_mode
         )
         
         X_train = pipeline["X_train"]

@@ -28,7 +28,8 @@ def train_model(req: TrainModelRequest):
             scale_features=req.scale_features,
             remove_duplicates=req.remove_duplicates,
             hyperparameters=req.hyperparameters,
-            experiment_name=req.experiment_name
+            experiment_name=req.experiment_name,
+            classification_mode=req.classification_mode or "multiclass"
         )
         return results
     except ValueError as ve:
