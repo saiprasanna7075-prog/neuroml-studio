@@ -40,17 +40,26 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080911] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="relative min-h-screen bg-[#07080e] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
+      {/* Ambient Cyber Mesh Atmospheric Glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-[550px] h-[550px] rounded-full bg-violet-600/10 blur-[130px] animate-pulse" />
+        <div className="absolute top-1/3 -right-32 w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px]" />
+        <div className="absolute -bottom-32 left-1/4 w-[600px] h-[600px] rounded-full bg-fuchsia-600/10 blur-[150px]" />
+      </div>
+
       {/* Top Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        activeDatasetName="UCI Wine Quality"
-        backendHealthy={backendHealthy}
-      />
+      <div className="relative z-30">
+        <Header
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          activeDatasetName="UCI Wine Quality"
+          backendHealthy={backendHealthy}
+        />
+      </div>
 
       {/* Main Content with Sidebar */}
-      <div className="flex-1 flex w-full">
+      <div className="relative z-10 flex-1 flex w-full">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)]">

@@ -289,7 +289,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 className="px-3.5 py-1.5 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
               >
                 <Layers size={13} className="text-cyan-400" />
-                <span>36 Models</span>
+                <span>37 Models</span>
               </button>
             </div>
           </div>
@@ -299,9 +299,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       <div className="max-w-7xl mx-auto px-4 lg:px-8 space-y-14">
         {/* ───────────────────────── 2. SYSTEM TELEMETRY CARDS ───────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: 36 Algorithms */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0f111e] via-[#121528] to-[#181a30] p-5 rounded-2xl border border-[#22263d] hover:border-cyan-500/40 transition-all shadow-xl group">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl group-hover:bg-cyan-500/10 transition-colors" />
+          {/* Card 1: 37 Algorithms */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.05] via-[#0d1020]/90 to-[#070914] p-5 rounded-2xl border border-white/10 hover:border-cyan-500/40 transition-all shadow-xl group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-colors" />
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Cpu className="w-4 h-4 text-cyan-400" />
@@ -312,22 +312,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white font-mono">36</span>
+              <span className="text-3xl font-bold text-white font-tech">37</span>
               <span className="text-xs text-cyan-400 font-mono">Models</span>
             </div>
             <div className="mt-3 flex gap-1 h-1.5 rounded-full bg-[#1e2238] overflow-hidden">
-              <div className="w-[55%] bg-cyan-400" title="20 Classification Models (55%)" />
-              <div className="w-[45%] bg-violet-500" title="16 Regression Models (45%)" />
+              <div className="w-[54%] bg-cyan-400" title="20 Classification Models" />
+              <div className="w-[46%] bg-violet-500" title="17 Regression Models" />
             </div>
             <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1.5">
               <span>20 Classifiers</span>
-              <span>16 Regressors</span>
+              <span>17 Regressors</span>
             </div>
           </div>
 
           {/* Card 2: 6,497 Chemical Samples */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0f111e] via-[#121528] to-[#181a30] p-5 rounded-2xl border border-[#22263d] hover:border-violet-500/40 transition-all shadow-xl group">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/5 rounded-full blur-2xl group-hover:bg-violet-500/10 transition-colors" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.05] via-[#0d1020]/90 to-[#070914] p-5 rounded-2xl border border-white/10 hover:border-violet-500/40 transition-all shadow-xl group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-colors" />
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Database className="w-4 h-4 text-violet-400" />
@@ -338,7 +338,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white font-mono">6,497</span>
+              <span className="text-3xl font-bold text-white font-tech">6,497</span>
               <span className="text-xs text-violet-400 font-mono">Rows</span>
             </div>
             <div className="mt-3 flex gap-1 h-1.5 rounded-full bg-[#1e2238] overflow-hidden">
@@ -352,8 +352,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Card 3: 68.87% Champion Accuracy */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0f111e] via-[#121528] to-[#181a30] p-5 rounded-2xl border border-[#22263d] hover:border-amber-500/40 transition-all shadow-xl group">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-colors" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.05] via-[#0d1020]/90 to-[#070914] p-5 rounded-2xl border border-white/10 hover:border-amber-500/40 transition-all shadow-xl group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors" />
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Trophy className="w-4 h-4 text-amber-400" />
@@ -364,7 +364,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white font-mono">68.87%</span>
+              <span className="text-3xl font-bold text-white font-tech">68.87%</span>
               <span className="text-xs text-amber-400 font-mono">+4.66% vs KNN</span>
             </div>
             <div className="mt-3 w-full bg-[#1e2238] h-1.5 rounded-full overflow-hidden">
@@ -377,8 +377,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Card 4: SHAP Game-Theoretic XAI */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0f111e] via-[#121528] to-[#181a30] p-5 rounded-2xl border border-[#22263d] hover:border-pink-500/40 transition-all shadow-xl group">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/5 rounded-full blur-2xl group-hover:bg-pink-500/10 transition-colors" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.05] via-[#0d1020]/90 to-[#070914] p-5 rounded-2xl border border-white/10 hover:border-pink-500/40 transition-all shadow-xl group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl group-hover:bg-pink-500/20 transition-colors" />
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-pink-400" />
@@ -389,7 +389,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white font-mono">100%</span>
+              <span className="text-3xl font-bold text-white font-tech">100%</span>
               <span className="text-xs text-pink-400 font-mono">Transparent</span>
             </div>
             <div className="mt-3 w-full bg-[#1e2238] h-1.5 rounded-full overflow-hidden">
@@ -419,7 +419,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </div>
 
               <div>
-                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                <h3 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight">
                   Simulate Wine Quality Score Instantly
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
@@ -530,7 +530,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">
                     Model Inference
                   </span>
-                  <h4 className="text-lg font-bold text-white">Estimated Quality Grade</h4>
+                  <h4 className="font-display text-lg font-bold text-white">Estimated Quality Grade</h4>
                 </div>
                 <div className={`px-2.5 py-1 rounded-full text-xs font-mono border ${qualityTier.color}`}>
                   {qualityTier.label}
@@ -540,10 +540,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               {/* Big Score Display */}
               <div className="text-center py-2">
                 <div className="inline-flex items-baseline gap-1">
-                  <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-violet-300 font-mono">
+                  <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-violet-300 font-tech">
                     {predictedScore}
                   </span>
-                  <span className="text-2xl font-bold text-slate-400 font-mono">/ 10</span>
+                  <span className="text-2xl font-bold text-slate-400 font-tech">/ 10</span>
                 </div>
                 <p className="text-xs text-slate-400 font-mono mt-1">
                   Confidence Estimate: <span className="text-emerald-400 font-bold">{confidencePct}%</span>
@@ -586,7 +586,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block font-bold">
                 End-To-End Machine Learning
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-0.5">
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-white mt-0.5">
                 Scientific Pipeline Architecture
               </h2>
             </div>
@@ -609,7 +609,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     </span>
                     <ArrowUpRight size={14} className="text-slate-500 group-hover:text-white transition-colors" />
                   </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  <h4 className="font-display text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
                     {stage.name}
                   </h4>
                   <p className="text-[11px] text-slate-400 mt-1 font-mono leading-relaxed">
@@ -632,7 +632,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-mono text-amber-400 uppercase tracking-widest block font-bold">
                 Benchmark Standings
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-0.5">
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-white mt-0.5">
                 Algorithm Performance Leaderboard
               </h2>
               <p className="text-xs text-slate-400 mt-1">
@@ -720,7 +720,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-mono text-violet-400 uppercase tracking-widest block font-bold">
                 Specialised Workspaces
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-0.5">
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-white mt-0.5">
                 Explore Laboratory Modules
               </h2>
             </div>
@@ -746,7 +746,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                      <h3 className="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
                         {module.title}
                       </h3>
                       <p className="text-xs text-slate-400 mt-2 leading-relaxed">

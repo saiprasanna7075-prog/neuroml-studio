@@ -202,14 +202,14 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
       {/* Title Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-[#22263d] pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono uppercase tracking-wider mb-2">
-            <Wine className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono uppercase tracking-wider mb-2">
+            <Wine className="w-3.5 h-3.5 text-cyan-400" />
             <span>Flagship Demonstration</span>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-            Wine Quality Intelligence
+          <h1 className="font-display text-3xl lg:text-4xl font-black text-white tracking-tight">
+            Wine Quality <span className="text-gradient-violet-cyan">Intelligence</span>
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+          <p className="text-sm text-slate-300 mt-1 max-w-2xl">
             Predict wine quality using Random Forest and K-Nearest Neighbors, with transparent AI explanations powered by SHAP.
           </p>
         </div>

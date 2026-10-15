@@ -11,59 +11,75 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  activeDatasetName = "UCI White Wine",
+  activeDatasetName = "UCI Wine Quality",
   backendHealthy
 }) => {
   return (
-    <header className="sticky top-0 z-50 w-full h-16 bg-[#080911]/90 backdrop-blur-md border-b border-[#22263d] px-4 lg:px-8 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full h-16 bg-[#05070e]/80 backdrop-blur-xl border-b border-white/[0.07] px-4 lg:px-8 flex items-center justify-between transition-colors">
       {/* Brand & Logo */}
-      <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('overview')}>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-indigo-600 to-cyan-500 p-0.5 flex items-center justify-center shadow-lg shadow-violet-500/20">
-          <div className="w-full h-full bg-[#080911] rounded-[10px] flex items-center justify-center">
-            <Cpu className="w-5 h-5 text-cyan-400" />
+      <div
+        className="flex items-center gap-3 cursor-pointer group"
+        onClick={() => setActiveTab('overview')}
+      >
+        <div className="relative">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 p-[1.5px] shadow-[0_0_20px_rgba(139,92,246,0.35)] group-hover:shadow-[0_0_28px_rgba(6,182,212,0.5)] transition-all duration-300">
+            <div className="w-full h-full bg-[#070914] rounded-[10px] flex items-center justify-center">
+              <Cpu className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform duration-300" />
+            </div>
           </div>
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping opacity-75" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
         </div>
+
         <div>
-          <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-            NeuroML <span className="text-gradient-violet-cyan font-black">Studio</span>
+          <span className="font-display text-lg font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
+            NeuroML <span className="text-gradient-violet-cyan">Studio</span>
           </span>
-          <span className="text-[10px] font-mono text-slate-400 block -mt-1 tracking-wider uppercase">
+          <span className="text-[9px] font-mono text-slate-400 tracking-widest uppercase block mt-1">
             3D Machine Learning Laboratory
           </span>
         </div>
       </div>
 
       {/* Middle Status Pill Indicators */}
-      <div className="hidden md:flex items-center gap-4 text-xs font-mono">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0f111e] border border-[#22263d]">
+      <div className="hidden md:flex items-center gap-3 text-xs">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-sm">
           <Database className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-slate-400">Dataset:</span>
-          <span className="text-slate-200 font-semibold">{activeDatasetName}</span>
+          <span className="text-slate-400 font-normal">Dataset:</span>
+          <span className="text-slate-100 font-semibold tracking-tight">{activeDatasetName}</span>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0f111e] border border-[#22263d]">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-sm">
           <Activity className="w-3.5 h-3.5 text-violet-400" />
-          <span className="text-slate-400">AI Engine:</span>
-          <span className="flex items-center gap-1.5 text-slate-200">
-            <span className={`w-2 h-2 rounded-full ${backendHealthy ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-            {backendHealthy ? 'Scikit-Learn & SHAP Online' : 'Connecting...'}
+          <span className="text-slate-400 font-normal">AI Engine:</span>
+          <span className="flex items-center gap-1.5 font-medium">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                backendHealthy
+                  ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse'
+                  : 'bg-rose-400 shadow-[0_0_10px_#f87171]'
+              }`}
+            />
+            <span className={backendHealthy ? 'text-emerald-300' : 'text-slate-400'}>
+              {backendHealthy ? 'Scikit-Learn & SHAP Online' : 'Connecting Engine...'}
+            </span>
           </span>
         </div>
       </div>
 
       {/* Quick Launch Buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <button
           onClick={() => setActiveTab('demo')}
-          className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-violet-600/20 to-cyan-600/20 hover:from-violet-600/30 hover:to-cyan-600/30 border border-violet-500/40 text-violet-300 text-xs font-mono transition-all cursor-pointer"
+          className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600/30 via-indigo-600/30 to-cyan-500/20 hover:from-violet-600/40 hover:to-cyan-500/30 border border-violet-500/40 text-violet-200 text-xs font-semibold shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:shadow-[0_0_22px_rgba(139,92,246,0.35)] transition-all cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
           <span>Viva Presentation Mode</span>
         </button>
 
         <button
           onClick={() => setActiveTab('learn')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0f111e] hover:bg-[#15182a] border border-[#22263d] text-slate-300 text-xs font-mono transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer shadow-sm"
         >
           <BookOpen className="w-3.5 h-3.5 text-slate-400" />
           <span className="hidden sm:inline">Learn Guide</span>

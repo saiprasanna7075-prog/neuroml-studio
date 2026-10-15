@@ -15,7 +15,19 @@ import {
   Download,
   ArrowRight,
   Sliders,
-  Check
+  Check,
+  TrendingUp,
+  Activity,
+  GitBranch,
+  Zap,
+  Cpu,
+  Target,
+  Compass,
+  Binary,
+  Layers,
+  Flame,
+  Scale,
+  Radar
 } from 'lucide-react';
 import { DatasetSummary, ModelMetricsResponse } from '../types';
 import { fetchDatasets, trainModel } from '../services/api';
@@ -490,12 +502,80 @@ const ALL_ALGORITHMS: AlgorithmItem[] = [
   },
 ];
 
+const getAlgorithmVisuals = (id: string, group: string) => {
+  if (id.includes('forest') || id.includes('extra_trees') || id.includes('decision_tree')) {
+    return {
+      icon: GitBranch,
+      familyTag: 'Tree Ensemble',
+      badgeColor: 'from-emerald-500/25 to-teal-500/15 text-emerald-300 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]',
+      iconBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
+      accentGlow: 'hover:border-emerald-500/40 hover:shadow-[0_12px_32px_-8px_rgba(16,185,129,0.22)]'
+    };
+  }
+  if (id.includes('xgboost') || id.includes('lightgbm') || id.includes('catboost') || id.includes('gradient_boosting') || id.includes('adaboost')) {
+    return {
+      icon: Zap,
+      familyTag: 'Gradient Boosting',
+      badgeColor: 'from-amber-500/25 to-orange-500/15 text-amber-300 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]',
+      iconBg: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
+      accentGlow: 'hover:border-amber-500/40 hover:shadow-[0_12px_32px_-8px_rgba(245,158,11,0.22)]'
+    };
+  }
+  if (id.includes('mlp') || id.includes('neural')) {
+    return {
+      icon: Cpu,
+      familyTag: 'Deep Neural Net',
+      badgeColor: 'from-pink-500/25 to-rose-500/15 text-pink-300 border-pink-500/40 shadow-[0_0_12px_rgba(236,72,153,0.15)]',
+      iconBg: 'bg-pink-500/15 border-pink-500/30 text-pink-400',
+      accentGlow: 'hover:border-pink-500/40 hover:shadow-[0_12px_32px_-8px_rgba(236,72,153,0.22)]'
+    };
+  }
+  if (id.includes('svm') || id.includes('svc') || id.includes('svr')) {
+    return {
+      icon: Target,
+      familyTag: 'Kernel Machine',
+      badgeColor: 'from-violet-500/25 to-indigo-500/15 text-violet-300 border-violet-500/40 shadow-[0_0_12px_rgba(139,92,246,0.15)]',
+      iconBg: 'bg-violet-500/15 border-violet-500/30 text-violet-400',
+      accentGlow: 'hover:border-violet-500/40 hover:shadow-[0_12px_32px_-8px_rgba(139,92,246,0.22)]'
+    };
+  }
+  if (id.includes('knn')) {
+    return {
+      icon: Compass,
+      familyTag: 'Distance Proximity',
+      badgeColor: 'from-cyan-500/25 to-blue-500/15 text-cyan-300 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.15)]',
+      iconBg: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400',
+      accentGlow: 'hover:border-cyan-500/40 hover:shadow-[0_12px_32px_-8px_rgba(6,182,212,0.22)]'
+    };
+  }
+  if (id.includes('bayes')) {
+    return {
+      icon: Binary,
+      familyTag: 'Bayesian / Probabilistic',
+      badgeColor: 'from-indigo-500/25 to-purple-500/15 text-indigo-300 border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.15)]',
+      iconBg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400',
+      accentGlow: 'hover:border-indigo-500/40 hover:shadow-[0_12px_32px_-8px_rgba(99,102,241,0.22)]'
+    };
+  }
+  return {
+    icon: group === 'Regression' ? TrendingUp : Activity,
+    familyTag: group === 'Regression' ? 'Linear & Parametric' : 'Generalized Linear',
+    badgeColor: group === 'Regression'
+      ? 'from-violet-500/25 to-purple-500/15 text-violet-300 border-violet-500/40 shadow-[0_0_12px_rgba(139,92,246,0.15)]'
+      : 'from-cyan-500/25 to-teal-500/15 text-cyan-300 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.15)]',
+    iconBg: group === 'Regression' ? 'bg-violet-500/15 border-violet-500/30 text-violet-400' : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400',
+    accentGlow: group === 'Regression'
+      ? 'hover:border-violet-500/40 hover:shadow-[0_12px_32px_-8px_rgba(139,92,246,0.22)]'
+      : 'hover:border-cyan-500/40 hover:shadow-[0_12px_32px_-8px_rgba(6,182,212,0.22)]'
+  };
+};
+
 const CategoryBadge: React.FC<{ group: 'Regression' | 'Classification' }> = ({ group }) => (
   <span
-    className={`px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider ${
+    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border shadow-sm ${
       group === 'Regression'
-        ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40'
-        : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+        ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/15 text-violet-300 border-violet-500/40'
+        : 'bg-gradient-to-r from-cyan-500/20 to-teal-500/15 text-cyan-300 border-cyan-500/40'
     }`}
   >
     {group}
@@ -508,100 +588,142 @@ const AlgorithmCard: React.FC<{
   onLearn: (alg: AlgorithmItem) => void;
 }> = ({ alg, onTrain, onLearn }) => {
   const [expanded, setExpanded] = useState(false);
+  const visuals = getAlgorithmVisuals(alg.id, alg.group);
+  const IconComp = visuals.icon;
 
   return (
-    <div className="glass-panel rounded-xl border border-white/10 hover:border-violet-500/40 transition-all duration-300 overflow-hidden group">
-      {/* Header */}
-      <div className="p-4 flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <CategoryBadge group={alg.group} />
-            {alg.implemented ? (
-              <span className="flex items-center gap-1 text-xs text-emerald-400">
-                <CheckCircle2 size={11} /> Live & Trainable
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/[0.05] via-[#0d1020]/90 to-[#090b16] border border-white/[0.08] backdrop-blur-xl transition-all duration-300 group flex flex-col justify-between ${visuals.accentGlow} hover:-translate-y-1 shadow-xl`}>
+      {/* Top subtle ambient glow streak */}
+      <div className={`absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r ${alg.group === 'Regression' ? 'from-violet-500/70 via-fuchsia-500/40 to-transparent' : 'from-cyan-400/70 via-emerald-400/40 to-transparent'} opacity-60 group-hover:opacity-100 transition-opacity`} />
+      
+      <div className="p-5 space-y-4">
+        {/* Header Row: Icon + Badge + Status */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-inner ${visuals.iconBg}`}>
+              <IconComp size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <CategoryBadge group={alg.group} />
+                <span className="text-[10px] font-mono text-slate-400 tracking-tight">
+                  {visuals.familyTag}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+              <span>Live</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Title and Short Def */}
+        <div>
+          <h3 className="font-display font-bold text-base text-white group-hover:text-cyan-300 transition-colors tracking-tight">
+            {alg.name}
+          </h3>
+          <p className="text-xs text-slate-300 mt-1.5 leading-relaxed line-clamp-2">
+            {alg.shortDef}
+          </p>
+        </div>
+
+        {/* Hyperparameters Preview Chips */}
+        {alg.hyperparameters && alg.hyperparameters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1 pt-1">
+            {alg.hyperparameters.slice(0, 3).map((hp, i) => (
+              <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-slate-400">
+                {hp}
               </span>
-            ) : (
-              <span className="flex items-center gap-1 text-xs text-amber-400">
-                <XCircle size={11} /> Planned
+            ))}
+            {alg.hyperparameters.length > 3 && (
+              <span className="text-[10px] font-mono text-slate-500 px-1">
+                +{alg.hyperparameters.length - 3} more
               </span>
             )}
           </div>
-          <h3 className="text-white font-semibold text-sm leading-tight">{alg.name}</h3>
-          <p className="text-white/50 text-xs mt-1 leading-relaxed line-clamp-2">{alg.shortDef}</p>
-        </div>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-white/30 hover:text-violet-400 transition-colors mt-1 flex-shrink-0 cursor-pointer"
-          aria-label="Toggle details"
-        >
-          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+        )}
+
+        {/* Expandable details drawer */}
+        {expanded && (
+          <div className="pt-3 border-t border-white/[0.07] space-y-3 text-xs animate-in fade-in duration-200">
+            <div>
+              <span className="text-[10px] font-mono text-violet-300 uppercase tracking-widest font-semibold block mb-1">
+                Mathematical Mechanism
+              </span>
+              <p className="text-slate-300 leading-relaxed text-[11px]">
+                {alg.howItWorks}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <div className="bg-emerald-950/20 border border-emerald-500/20 p-2.5 rounded-xl">
+                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block mb-1">
+                  Key Advantages
+                </span>
+                <ul className="space-y-1 text-[11px] text-slate-300">
+                  {alg.advantages.map((adv, i) => (
+                    <li key={i} className="flex items-start gap-1">
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span>{adv}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-rose-950/20 border border-rose-500/20 p-2.5 rounded-xl">
+                <span className="text-[10px] font-mono text-rose-400 font-bold uppercase tracking-wider block mb-1">
+                  Limitations
+                </span>
+                <ul className="space-y-1 text-[11px] text-slate-300">
+                  {alg.limitations.map((lim, i) => (
+                    <li key={i} className="flex items-start gap-1">
+                      <span className="text-rose-400 font-bold">✗</span>
+                      <span>{lim}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/[0.05] p-2.5 rounded-xl text-[11px]">
+              <span className="text-[10px] font-mono text-cyan-300 font-semibold block mb-0.5">Recommended Applications:</span>
+              <span className="text-slate-300">{alg.useCases}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Expandable details */}
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3">
-          <div>
-            <p className="text-xs text-violet-400 font-semibold uppercase tracking-wider mb-1">How It Works</p>
-            <p className="text-white/60 text-xs leading-relaxed">{alg.howItWorks}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-1">Advantages</p>
-              <ul className="space-y-0.5">
-                {alg.advantages.map((a, i) => (
-                  <li key={i} className="text-white/55 text-xs flex items-start gap-1">
-                    <span className="text-emerald-500 mt-0.5">+</span> {a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs text-red-400 font-semibold uppercase tracking-wider mb-1">Limitations</p>
-              <ul className="space-y-0.5">
-                {alg.limitations.map((l, i) => (
-                  <li key={i} className="text-white/55 text-xs flex items-start gap-1">
-                    <span className="text-red-500 mt-0.5">−</span> {l}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider mb-1">Use Cases</p>
-            <p className="text-white/55 text-xs">{alg.useCases}</p>
-          </div>
-          <div>
-            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-1">Key Hyperparameters</p>
-            <div className="flex flex-wrap gap-1.5">
-              {alg.hyperparameters.map((hp, i) => (
-                <span key={i} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-xs text-white/60 font-mono">
-                  {hp}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Footer Controls: Train + Learn + Details toggle */}
+      <div className="px-5 pb-5 pt-2 flex items-center justify-between gap-2 border-t border-white/[0.05] bg-black/20">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onTrain(alg)}
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-xs font-semibold flex items-center gap-1.5 shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_22px_rgba(6,182,212,0.45)] transition-all cursor-pointer transform hover:scale-105 active:scale-95"
+          >
+            <Play size={11} className="fill-white" />
+            <span>Train Model</span>
+          </button>
 
-      {/* Actions */}
-      <div className="px-4 pb-4 flex gap-2">
+          <button
+            onClick={() => onLearn(alg)}
+            className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <BookOpen size={11} className="text-slate-400" />
+            <span>Learn More</span>
+          </button>
+        </div>
+
         <button
-          onClick={() => onTrain(alg)}
-          disabled={!alg.implemented}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            alg.implemented
-              ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/30'
-              : 'bg-white/5 text-white/30 cursor-not-allowed'
-          }`}
+          onClick={() => setExpanded(!expanded)}
+          className="text-slate-400 hover:text-white text-xs flex items-center gap-1 transition-colors cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/5"
+          title={expanded ? "Show less" : "Show mathematical details"}
         >
-          <Play size={11} /> Train Model
-        </button>
-        <button
-          onClick={() => onLearn(alg)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all border border-white/10 cursor-pointer"
-        >
-          <BookOpen size={11} /> Learn More
+          <span className="text-[11px] font-mono hidden sm:inline">{expanded ? "Less" : "Details"}</span>
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
     </div>
@@ -703,72 +825,151 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
   const classification = filtered.filter((a) => a.group === 'Classification');
 
   return (
-    <div className="space-y-8 p-1 relative">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-1">Algorithm Universe</h1>
-        <p className="text-white/50">
-          {ALL_ALGORITHMS.length} machine learning algorithms — {ALL_ALGORITHMS.filter((a) => a.group === 'Regression').length} Regression,{' '}
-          {ALL_ALGORITHMS.filter((a) => a.group === 'Classification').length} Classification. All live and trainable with one click.
-        </p>
+    <div className="space-y-10 p-2 sm:p-4 max-w-7xl mx-auto">
+      {/* ───────────────────────── 1. HERO BANNER ───────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-950/40 via-[#0e1224] to-cyan-950/30 border border-white/10 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-violet-600/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-cyan-300">
+              <Sparkles size={13} className="text-cyan-400" />
+              <span>Computational Core • 37 ML Engines</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+            </div>
+
+            <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white">
+              Algorithm{' '}
+              <span className="text-gradient-violet-cyan">
+                Universe
+              </span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed font-normal">
+              A comprehensive laboratory of <strong className="text-white font-semibold">{ALL_ALGORITHMS.length} machine learning architectures</strong>. From classical parametric regression to deep neural multi-layer perceptrons, train on live datasets with zero latency.
+            </p>
+          </div>
+
+          {/* Quick Counter Chips */}
+          <div className="flex flex-row lg:flex-col gap-2.5 shrink-0">
+            <div className="flex-1 lg:w-48 p-3 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                  <TrendingUp size={16} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Regression</div>
+                  <div className="text-xs font-mono text-slate-300">Continuous</div>
+                </div>
+              </div>
+              <span className="font-tech text-lg font-bold text-violet-300">
+                {ALL_ALGORITHMS.filter((a) => a.group === 'Regression').length}
+              </span>
+            </div>
+
+            <div className="flex-1 lg:w-48 p-3 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Activity size={16} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Classification</div>
+                  <div className="text-xs font-mono text-slate-300">Discrete/Multi</div>
+                </div>
+              </div>
+              <span className="font-tech text-lg font-bold text-cyan-300">
+                {ALL_ALGORITHMS.filter((a) => a.group === 'Classification').length}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* ───────────────────────── 2. SEARCH & GROUP CONTROLS ───────────────────────── */}
+      <div className="p-2 sm:p-3 rounded-2xl bg-[#0c0f1d]/80 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row gap-3 items-stretch md:items-center shadow-lg">
+        {/* Search Bar */}
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search algorithms..."
+            placeholder="Search 37 algorithms by name, mechanism, or hyperparameters (e.g. 'xgboost', 'trees', 'svm')..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/60 transition-colors"
+            className="w-full pl-10 pr-9 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] focus:bg-white/[0.07] border border-white/10 focus:border-cyan-400/50 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-all shadow-inner"
           />
-        </div>
-        <div className="flex gap-2">
-          {(['All', 'Regression', 'Classification'] as const).map((g) => (
+          {searchQuery && (
             <button
-              key={g}
-              onClick={() => setSelectedGroup(g)}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                selectedGroup === g
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
-              }`}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
             >
-              {g}
+              <X size={14} />
             </button>
-          ))}
+          )}
+        </div>
+
+        {/* Group Tabs */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 shrink-0">
+          {(['All', 'Regression', 'Classification'] as const).map((g) => {
+            const count = g === 'All' ? ALL_ALGORITHMS.length : ALL_ALGORITHMS.filter((a) => a.group === g).length;
+            const active = selectedGroup === g;
+            return (
+              <button
+                key={g}
+                onClick={() => setSelectedGroup(g)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  active
+                    ? 'bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 text-white shadow-md shadow-violet-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>{g}</span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${active ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-500'}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div className="flex gap-4 flex-wrap text-sm text-white/50">
-        <span>
-          Showing <span className="text-white font-semibold">{filtered.length}</span> of {ALL_ALGORITHMS.length} algorithms
-        </span>
-        {regression.length > 0 && (
-          <span className="text-violet-400">
-            {regression.length} Regression
+      {/* ───────────────────────── 3. STATS TELEMETRY BAR ───────────────────────── */}
+      <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+        <div className="flex items-center gap-3">
+          <span>
+            Displaying <strong className="text-white font-mono">{filtered.length}</strong> of {ALL_ALGORITHMS.length} models
           </span>
-        )}
-        {classification.length > 0 && (
-          <span className="text-cyan-400">
-            {classification.length} Classification
-          </span>
-        )}
+          {searchQuery && (
+            <span className="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">
+              Filter: "{searchQuery}"
+            </span>
+          )}
+        </div>
+        <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-500">
+          <span>Click <strong className="text-violet-400">Train Model</strong> to run interactive test pipeline</span>
+        </div>
       </div>
 
-      {/* Regression Section */}
+      {/* ───────────────────────── 4. REGRESSION SECTION ───────────────────────── */}
       {regression.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-violet-500/20" />
-            <h2 className="text-lg font-bold text-violet-300 px-2">
-              A. Regression Models
-              <span className="ml-2 text-sm font-normal text-violet-400/60">({regression.length})</span>
-            </h2>
-            <div className="h-px flex-1 bg-violet-500/20" />
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-4 pb-2 border-b border-violet-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 shadow-inner">
+                <TrendingUp size={16} />
+              </div>
+              <div>
+                <h2 className="font-display font-bold text-lg text-white flex items-center gap-2">
+                  <span>Part A — Regression Architectures</span>
+                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    {regression.length} Algorithms
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Continuous target prediction evaluated via R², Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE)
+                </p>
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {regression.map((a) => (
@@ -783,16 +984,26 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
         </section>
       )}
 
-      {/* Classification Section */}
+      {/* ───────────────────────── 5. CLASSIFICATION SECTION ───────────────────────── */}
       {classification.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-cyan-500/20" />
-            <h2 className="text-lg font-bold text-cyan-300 px-2">
-              B. Classification Models
-              <span className="ml-2 text-sm font-normal text-cyan-400/60">({classification.length})</span>
-            </h2>
-            <div className="h-px flex-1 bg-cyan-500/20" />
+        <section className="space-y-4 pt-4">
+          <div className="flex items-center justify-between gap-4 pb-2 border-b border-cyan-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+                <Activity size={16} />
+              </div>
+              <div>
+                <h2 className="font-display font-bold text-lg text-white flex items-center gap-2">
+                  <span>Part B — Classification Architectures</span>
+                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    {classification.length} Algorithms
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Discrete class prediction evaluated via Accuracy, F1-Macro, Precision, Recall, and Confusion Matrices
+                </p>
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {classification.map((a) => (
@@ -808,50 +1019,51 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
       )}
 
       {filtered.length === 0 && (
-        <div className="text-center py-20 text-white/30">
-          <p className="text-xl mb-2">No algorithms match your search.</p>
-          <p className="text-sm">Try a different keyword or clear the filter.</p>
+        <div className="text-center py-20 text-slate-400 bg-white/[0.02] border border-white/5 rounded-3xl">
+          <p className="text-lg font-display text-white mb-2">No algorithms match your search.</p>
+          <p className="text-xs text-slate-400">Try a different keyword or reset the filter group.</p>
         </div>
       )}
 
       {/* ───────────────────────── INTERACTIVE TRAINING MODAL ───────────────────────── */}
       {trainingAlgo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-[#0f111e] border border-violet-500/40 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl shadow-violet-950/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="bg-[#0b0e1d]/95 border border-violet-500/40 rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl shadow-violet-950/70 ring-1 ring-white/10">
             {/* Modal Header */}
-            <div className="flex justify-between items-start border-b border-[#22263d] pb-4">
+            <div className="flex justify-between items-start border-b border-white/10 pb-4">
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1.5">
                   <CategoryBadge group={trainingAlgo.group} />
                   <span className="text-xs font-mono text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 size={12} /> Interactive Training Pipeline
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold text-white">{trainingAlgo.name}</h2>
-                <p className="text-xs text-slate-400 mt-1">{trainingAlgo.shortDef}</p>
+                <h2 className="font-display text-2xl font-bold text-white tracking-tight">{trainingAlgo.name}</h2>
+                <p className="text-xs text-slate-300 mt-1">{trainingAlgo.shortDef}</p>
               </div>
               <button
                 onClick={() => setTrainingAlgo(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-white p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
               >
                 <X size={18} />
               </button>
             </div>
 
             {trainError && (
-              <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono">
-                {trainError}
+              <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2">
+                <XCircle size={16} className="text-rose-400 shrink-0" />
+                <span>{trainError}</span>
               </div>
             )}
 
             {/* Pipeline Configuration Form */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#15182a] p-4 rounded-xl border border-[#22263d]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/10">
               <div>
-                <label className="text-xs font-mono text-slate-400 block mb-1">Choose Dataset:</label>
+                <label className="text-xs font-mono text-slate-300 block mb-1.5 font-medium">Choose Dataset:</label>
                 <select
                   value={selectedDatasetId}
                   onChange={(e) => setSelectedDatasetId(e.target.value)}
-                  className="w-full bg-[#0f111e] border border-[#22263d] rounded-xl px-3 py-2 text-xs text-cyan-300 font-mono font-bold cursor-pointer"
+                  className="w-full bg-[#080911] border border-white/15 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-xs text-cyan-300 font-mono font-bold cursor-pointer transition-colors shadow-inner"
                 >
                   {datasets.map(d => (
                     <option key={d.id} value={d.id}>
@@ -862,11 +1074,11 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
               </div>
 
               <div>
-                <label className="text-xs font-mono text-slate-400 block mb-1">Train/Test Split:</label>
+                <label className="text-xs font-mono text-slate-300 block mb-1.5 font-medium">Train/Test Split:</label>
                 <select
                   value={splitRatio}
                   onChange={(e) => setSplitRatio(Number(e.target.value))}
-                  className="w-full bg-[#0f111e] border border-[#22263d] rounded-xl px-3 py-2 text-xs text-slate-200 font-mono cursor-pointer"
+                  className="w-full bg-[#080911] border border-white/15 focus:border-violet-400 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 font-mono cursor-pointer transition-colors shadow-inner"
                 >
                   <option value={0.3}>70% Train / 30% Test (Standard)</option>
                   <option value={0.2}>80% Train / 20% Test</option>
@@ -874,23 +1086,23 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
                 </select>
               </div>
 
-              <div className="sm:col-span-2 flex flex-wrap items-center gap-6 pt-1 text-xs font-mono text-slate-300">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-6 pt-2 text-xs font-mono text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
                   <input
                     type="checkbox"
                     checked={scaleFeatures}
                     onChange={(e) => setScaleFeatures(e.target.checked)}
-                    className="accent-cyan-400 rounded cursor-pointer"
+                    className="accent-cyan-400 rounded cursor-pointer w-4 h-4"
                   />
                   <span>StandardScaler (Leak-free on Train only)</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
                   <input
                     type="checkbox"
                     checked={removeDuplicates}
                     onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                    className="accent-violet-500 rounded cursor-pointer"
+                    className="accent-violet-500 rounded cursor-pointer w-4 h-4"
                   />
                   <span>Drop Duplicate Rows</span>
                 </label>
@@ -901,7 +1113,7 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
             <button
               onClick={handleExecuteTraining}
               disabled={isTraining}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-violet-600/30 cursor-pointer disabled:opacity-50 transition-all"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(139,92,246,0.4)] cursor-pointer disabled:opacity-50 transition-all transform hover:scale-[1.01] active:scale-[0.99]"
             >
               {isTraining ? (
                 <>
@@ -910,7 +1122,7 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 text-cyan-300" />
+                  <Play className="w-4 h-4 text-cyan-300 fill-cyan-300" />
                   <span>Execute Model Pipeline & Evaluate</span>
                 </>
               )}
@@ -918,20 +1130,20 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
 
             {/* Live Evaluation Results */}
             {trainedResult && (
-              <div className="bg-[#15182a] p-5 rounded-2xl border border-emerald-500/40 space-y-5 animate-in fade-in duration-300">
-                <div className="flex justify-between items-center border-b border-[#22263d] pb-3">
+              <div className="bg-white/[0.02] p-5 rounded-2xl border border-emerald-500/40 space-y-5 animate-in fade-in duration-300">
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
                   <div>
                     <span className="text-xs font-mono text-emerald-400 font-bold uppercase flex items-center gap-1.5">
                       <CheckCircle2 size={13} /> Evaluation Ready ({trainedResult.training_time_ms}ms)
                     </span>
-                    <h3 className="text-lg font-bold text-white mt-0.5">
+                    <h3 className="font-display text-lg font-bold text-white mt-0.5">
                       {trainedResult.algorithm_name} on {trainedResult.dataset_name}
                     </h3>
                   </div>
 
                   <button
                     onClick={handleExportJSON}
-                    className="px-3 py-1.5 rounded-lg bg-[#0f111e] hover:bg-[#1d223a] border border-[#22263d] text-cyan-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-cyan-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
                     <Download size={13} />
                     <span>Export JSON</span>
@@ -940,55 +1152,55 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
 
                 {/* Metrics Cards */}
                 {trainedResult.classification_metrics ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">Accuracy:</span>
-                      <strong className="text-cyan-400 text-xl font-black">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-cyan-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">Accuracy</span>
+                      <strong className="text-cyan-400 text-2xl font-tech font-bold">
                         {(trainedResult.classification_metrics.accuracy * 100).toFixed(2)}%
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">F1 Macro:</span>
-                      <strong className="text-violet-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-violet-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">F1 Macro</span>
+                      <strong className="text-violet-400 text-2xl font-tech font-bold">
                         {trainedResult.classification_metrics.f1_macro.toFixed(3)}
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">Precision (W):</span>
-                      <strong className="text-emerald-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-emerald-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">Precision (W)</span>
+                      <strong className="text-emerald-400 text-2xl font-tech font-bold">
                         {(trainedResult.classification_metrics.precision_weighted * 100).toFixed(1)}%
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">Recall (W):</span>
-                      <strong className="text-rose-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-rose-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">Recall (W)</span>
+                      <strong className="text-rose-400 text-2xl font-tech font-bold">
                         {(trainedResult.classification_metrics.recall_weighted * 100).toFixed(1)}%
                       </strong>
                     </div>
                   </div>
                 ) : trainedResult.regression_metrics ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">R² Score:</span>
-                      <strong className="text-cyan-400 text-xl font-black">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-cyan-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">R² Score</span>
+                      <strong className="text-cyan-400 text-2xl font-tech font-bold">
                         {trainedResult.regression_metrics.r2_score.toFixed(3)}
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">MAE:</span>
-                      <strong className="text-violet-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-violet-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">MAE</span>
+                      <strong className="text-violet-400 text-2xl font-tech font-bold">
                         {trainedResult.regression_metrics.mae.toFixed(3)}
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">RMSE:</span>
-                      <strong className="text-emerald-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-emerald-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">RMSE</span>
+                      <strong className="text-emerald-400 text-2xl font-tech font-bold">
                         {trainedResult.regression_metrics.rmse.toFixed(3)}
                       </strong>
                     </div>
-                    <div className="bg-[#0f111e] p-3 rounded-xl border border-[#22263d]">
-                      <span className="text-slate-400 block text-[11px]">MSE:</span>
-                      <strong className="text-rose-400 text-xl font-black">
+                    <div className="bg-[#080911] p-3.5 rounded-xl border border-rose-500/30">
+                      <span className="text-slate-400 block text-[11px] font-mono">MSE</span>
+                      <strong className="text-rose-400 text-2xl font-tech font-bold">
                         {trainedResult.regression_metrics.mse.toFixed(3)}
                       </strong>
                     </div>
@@ -1019,45 +1231,45 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
 
       {/* ───────────────────────── LEARN MORE MODAL ───────────────────────── */}
       {learningAlgo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-[#0f111e] border border-cyan-500/40 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl shadow-cyan-950/50">
-            <div className="flex justify-between items-start border-b border-[#22263d] pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="bg-[#0b0e1d]/95 border border-cyan-500/40 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl shadow-cyan-950/70 ring-1 ring-white/10">
+            <div className="flex justify-between items-start border-b border-white/10 pb-4">
               <div>
                 <CategoryBadge group={learningAlgo.group} />
-                <h2 className="text-2xl font-bold text-white mt-1">{learningAlgo.name}</h2>
+                <h2 className="font-display text-2xl font-bold text-white mt-1.5">{learningAlgo.name}</h2>
                 <span className="text-xs text-slate-400 font-mono">Theoretical & Algorithmic Blueprint</span>
               </div>
               <button
                 onClick={() => setLearningAlgo(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-white p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-mono">
-              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-1.5">
-                <span className="text-cyan-400 font-bold uppercase tracking-wider block">Mathematical Foundation:</span>
-                <p className="text-slate-300 leading-relaxed">{learningAlgo.howItWorks}</p>
+            <div className="space-y-4 text-xs">
+              <div className="bg-white/[0.02] p-4 rounded-2xl border border-white/10 space-y-1.5">
+                <span className="text-cyan-400 font-mono font-bold uppercase tracking-wider block">Mathematical Foundation:</span>
+                <p className="text-slate-300 leading-relaxed font-sans text-xs">{learningAlgo.howItWorks}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-[#15182a] p-4 rounded-xl border border-emerald-500/20 space-y-2">
-                  <span className="text-emerald-400 font-bold uppercase tracking-wider block">Key Advantages:</span>
-                  <ul className="space-y-1">
+                <div className="bg-emerald-950/20 p-4 rounded-2xl border border-emerald-500/20 space-y-2">
+                  <span className="text-emerald-400 font-mono font-bold uppercase tracking-wider block">Key Advantages:</span>
+                  <ul className="space-y-1.5">
                     {learningAlgo.advantages.map((adv, i) => (
-                      <li key={i} className="text-slate-300 flex items-start gap-1.5">
+                      <li key={i} className="text-slate-300 flex items-start gap-1.5 font-sans">
                         <span className="text-emerald-400 font-bold">+</span> {adv}
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="bg-[#15182a] p-4 rounded-xl border border-rose-500/20 space-y-2">
-                  <span className="text-rose-400 font-bold uppercase tracking-wider block">Key Limitations:</span>
-                  <ul className="space-y-1">
+                <div className="bg-rose-950/20 p-4 rounded-2xl border border-rose-500/20 space-y-2">
+                  <span className="text-rose-400 font-mono font-bold uppercase tracking-wider block">Key Limitations:</span>
+                  <ul className="space-y-1.5">
                     {learningAlgo.limitations.map((lim, i) => (
-                      <li key={i} className="text-slate-300 flex items-start gap-1.5">
+                      <li key={i} className="text-slate-300 flex items-start gap-1.5 font-sans">
                         <span className="text-rose-400 font-bold">−</span> {lim}
                       </li>
                     ))}
@@ -1065,16 +1277,16 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
                 </div>
               </div>
 
-              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-1.5">
-                <span className="text-violet-400 font-bold uppercase tracking-wider block">Recommended Use Cases:</span>
-                <p className="text-slate-300 leading-relaxed">{learningAlgo.useCases}</p>
+              <div className="bg-white/[0.02] p-4 rounded-2xl border border-white/10 space-y-1.5">
+                <span className="text-violet-400 font-mono font-bold uppercase tracking-wider block">Recommended Applications:</span>
+                <p className="text-slate-300 leading-relaxed font-sans text-xs">{learningAlgo.useCases}</p>
               </div>
 
-              <div className="bg-[#15182a] p-4 rounded-xl border border-[#22263d] space-y-2">
-                <span className="text-amber-400 font-bold uppercase tracking-wider block">Hyperparameter Tuning Guide:</span>
+              <div className="bg-white/[0.02] p-4 rounded-2xl border border-white/10 space-y-2">
+                <span className="text-amber-400 font-mono font-bold uppercase tracking-wider block">Hyperparameter Tuning Guide:</span>
                 <div className="flex flex-wrap gap-2">
                   {learningAlgo.hyperparameters.map((hp, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-[#0f111e] border border-[#22263d] rounded-lg text-slate-200">
+                    <span key={i} className="px-2.5 py-1 bg-white/[0.04] border border-white/10 rounded-lg text-slate-200 font-mono">
                       {hp}
                     </span>
                   ))}
@@ -1082,16 +1294,16 @@ export const AlgorithmUniversePage: React.FC<AlgorithmUniverseProps> = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2 border-t border-[#22263d]">
+            <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
               <button
                 onClick={() => {
                   const alg = learningAlgo;
                   setLearningAlgo(null);
                   handleOpenTrainModal(alg);
                 }}
-                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-mono text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg shadow-violet-600/30 transition-all hover:scale-105"
               >
-                <Play size={12} /> Train This Algorithm Now
+                <Play size={12} className="fill-white" /> Train This Algorithm Now
               </button>
             </div>
           </div>

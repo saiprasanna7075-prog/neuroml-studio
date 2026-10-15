@@ -305,15 +305,15 @@ export const HeroCanvas: React.FC<HeroCanvasProps> = ({ onExploreClick, onWineAi
       <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 sm:px-6 pointer-events-none">
         <div className="max-w-4xl space-y-6 pointer-events-auto mt-4">
           {/* Futuristic Lab Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-950/40 border border-violet-500/30 text-violet-300 text-xs font-mono uppercase tracking-widest backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-950/50 border border-violet-500/40 text-violet-300 text-xs font-mono uppercase tracking-widest backdrop-blur-xl shadow-[0_0_20px_rgba(139,92,246,0.2)]">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
             <span>Interactive Machine Learning Research Platform</span>
           </div>
 
           {/* Mandatory Main Heading */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.08]">
             Explore Intelligence.{' '}
-            <span className="text-gradient-violet-cyan block mt-1">
+            <span className="text-gradient-violet-cyan block mt-1.5 drop-shadow-[0_0_35px_rgba(139,92,246,0.35)]">
               Understand Predictions.
             </span>
           </h1>
@@ -327,35 +327,35 @@ export const HeroCanvas: React.FC<HeroCanvasProps> = ({ onExploreClick, onWineAi
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <button
               onClick={onExploreClick}
-              className="px-7 py-3.5 rounded-xl font-medium text-sm sm:text-base text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-600/30 hover:shadow-violet-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2"
+              className="px-8 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 shadow-[0_0_25px_rgba(139,92,246,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2.5 font-display"
             >
               <span>Launch ML Studio</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
 
             <button
               onClick={onWineAiClick}
-              className="px-7 py-3.5 rounded-xl font-medium text-sm sm:text-base text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/40 border border-cyan-500/40 hover:border-cyan-400 shadow-lg shadow-cyan-950/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2 backdrop-blur-md"
+              className="px-8 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-cyan-200 bg-white/[0.04] hover:bg-white/[0.08] border border-cyan-500/40 hover:border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2.5 backdrop-blur-xl font-display"
             >
               <span>Explore Wine Quality AI</span>
-              <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-300">Flagship</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 uppercase tracking-wider">Flagship</span>
             </button>
           </div>
 
           {/* Quick Stat Pill Indicators */}
-          <div className="flex items-center justify-center gap-6 sm:gap-10 pt-6 text-xs text-slate-400 font-mono">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 pt-6 text-xs text-slate-300 font-mono">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>36 ML Algorithms</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+              <span>37 ML Algorithms</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
               <span>6,497 Combined Wine Dataset</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+              <span className="w-2 h-2 rounded-full bg-violet-400 shadow-[0_0_8px_#a78bfa]" />
               <span>SHAP TreeExplainer Active</span>
             </div>
           </div>
