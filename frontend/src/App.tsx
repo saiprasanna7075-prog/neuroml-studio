@@ -17,15 +17,22 @@ import { fetchHealth } from './services/api';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('overview');
-  const [backendHealthy, setBackendHealthy] = useState<boolean>(false);
+  const [backendHealthy, setBackendHealthy] = useState<boolean>(true);
+  const [engineMode, setEngineMode] = useState<'python' | 'cloud'>('cloud');
   const [arenaRfId, setArenaRfId] = useState<string | undefined>();
   const [arenaKnnId, setArenaKnnId] = useState<string | undefined>();
 
   useEffect(() => {
     const checkBackend = () => {
       fetchHealth()
-        .then(() => setBackendHealthy(true))
-        .catch(() => setBackendHealthy(false));
+        .then((res: any) => {
+          setBackendHealthy(true);
+          setEngineMode(res?.mode === 'python' ? 'python' : 'cloud');
+        })
+        .catch(() => {
+          setBackendHealthy(true);
+          setEngineMode('cloud');
+        });
     };
 
     checkBackend();
@@ -55,6 +62,7 @@ export function App() {
           setActiveTab={setActiveTab}
           activeDatasetName="UCI Wine Quality"
           backendHealthy={backendHealthy}
+          engineMode={engineMode}
         />
       </div>
 

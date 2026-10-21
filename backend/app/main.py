@@ -42,18 +42,25 @@ app.include_router(datasets_router, prefix="/api")
 app.include_router(models_router, prefix="/api")
 app.include_router(experiments_router, prefix="/api")
 
-@app.get("/")
-def root():
-    return {
-        "title": "NeuroML Studio AI Engine",
-        "status": "online",
-        "docs_url": "/docs",
-        "features": [
-            "Random Forest & KNN Classification & Regression",
-            "SHAP TreeExplainer & Global/Local Explanations",
-            "UCI Wine Quality Physicochemical Intelligence",
-            "Automated Delimiter & Preprocessing Pipeline (70:30 Split)",
-            "Model Comparison Arena",
-            "Experiment Persistence in SQLite"
-        ]
-    }
+# Serve frontend/dist static SPA if built (allows 1-port unified deployment)
+from fastapi.staticfiles import StaticFiles
+
+dist_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist")
+if os.path.exists(dist_dir):
+    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static-frontend")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "title": "NeuroML Studio AI Engine",
+            "status": "online",
+            "docs_url": "/docs",
+            "features": [
+                "Random Forest & KNN Classification & Regression",
+                "SHAP TreeExplainer & Global/Local Explanations",
+                "UCI Wine Quality Physicochemical Intelligence",
+                "Automated Delimiter & Preprocessing Pipeline (70:30 Split)",
+                "Model Comparison Arena",
+                "Experiment Persistence in SQLite"
+            ]
+        }

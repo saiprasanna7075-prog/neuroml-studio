@@ -6,13 +6,15 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   activeDatasetName?: string;
   backendHealthy: boolean;
+  engineMode?: 'python' | 'cloud';
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   activeDatasetName = "UCI Wine Quality",
-  backendHealthy
+  backendHealthy,
+  engineMode = 'cloud'
 }) => {
   return (
     <header className="sticky top-0 z-50 w-full h-16 bg-[#05070e]/80 backdrop-blur-xl border-b border-white/[0.07] px-4 lg:px-8 flex items-center justify-between transition-colors">
@@ -55,13 +57,13 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="flex items-center gap-1.5 font-medium">
             <span
               className={`w-2 h-2 rounded-full ${
-                backendHealthy
+                engineMode === 'python'
                   ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse'
-                  : 'bg-rose-400 shadow-[0_0_10px_#f87171]'
+                  : 'bg-cyan-400 shadow-[0_0_10px_#22d3ee] animate-pulse'
               }`}
             />
-            <span className={backendHealthy ? 'text-emerald-300' : 'text-slate-400'}>
-              {backendHealthy ? 'Scikit-Learn & SHAP Online' : 'Connecting Engine...'}
+            <span className={engineMode === 'python' ? 'text-emerald-300' : 'text-cyan-300'}>
+              {engineMode === 'python' ? 'Scikit-Learn & SHAP Online' : 'Cloud In-Memory AI Engine'}
             </span>
           </span>
         </div>

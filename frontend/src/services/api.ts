@@ -90,38 +90,95 @@ const DEFAULT_DATASETS: DatasetSummary[] = [
   }
 ];
 
-export async function fetchHealth() {
-  try {
-    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Graceful fallback for Vercel
+// In-memory dynamic custom datasets map (works on Vercel and offline)
+const customDatasets = new Map<string, { summary: DatasetSummary; preview: DatasetPreview }>();
+
+// In-memory dynamic experiments log
+const clientExperiments: ExperimentItem[] = [
+  {
+    id: 'exp_combined_rf',
+    name: 'Random Forest on Combined Wine',
+    algorithm: 'Random Forest',
+    dataset_name: 'Wine Quality (Combined Red & White)',
+    task_type: 'classification',
+    target_column: 'quality',
+    hyperparameters: { n_estimators: 100, max_depth: null },
+    metrics: { accuracy: 0.6887, f1_macro: 0.385 },
+    status: 'COMPLETED',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'exp_combined_knn',
+    name: 'KNN on Combined Wine',
+    algorithm: 'K-Nearest Neighbors (KNN)',
+    dataset_name: 'Wine Quality (Combined Red & White)',
+    task_type: 'classification',
+    target_column: 'quality',
+    hyperparameters: { n_neighbors: 5, weights: 'distance' },
+    metrics: { accuracy: 0.6421, f1_macro: 0.391 },
+    status: 'COMPLETED',
+    created_at: new Date(Date.now() - 3600000).toISOString()
   }
-  return { status: 'healthy', version: '2.0.0', engine: 'Active (Vercel Cloud Hybrid)' };
+];
+
+/**
+ * Universal safe JSON fetcher that verifies JSON content-type and handles
+ * static SPA rewrites (like Vercel index.html fallback) and network timeouts gracefully.
+ */
+async function safeFetchJson<T>(url: string, options: RequestInit = {}, timeoutMs = 2500): Promise<T | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      // Vercel or static web host returned HTML SPA shell
+      return null;
+    }
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchHealth(): Promise<{ status: string; mode: 'python' | 'cloud'; version: string; message: string }> {
+  const data = await safeFetchJson<{ status: string; version?: string; message?: string }>(`${API_BASE}/health`, {}, 2000);
+  if (data && data.status === 'healthy') {
+    return {
+      status: 'healthy',
+      mode: 'python',
+      version: data.version || '1.0.0',
+      message: data.message || 'Connected to Python FastAPI & Scikit-Learn Engine'
+    };
+  }
+  return {
+    status: 'healthy',
+    mode: 'cloud',
+    version: '2.0.0',
+    message: 'Active in Cloud Hybrid In-Memory AI Engine'
+  };
 }
 
 export async function fetchDatasets(): Promise<DatasetSummary[]> {
-  try {
-    const res = await fetch(`${API_BASE}/datasets`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
+  const remote = await safeFetchJson<DatasetSummary[]>(`${API_BASE}/datasets`, {}, 2000);
+  if (remote && Array.isArray(remote) && remote.length > 0) {
+    return remote;
   }
-  return DEFAULT_DATASETS;
+  const uploaded = Array.from(customDatasets.values()).map(v => v.summary);
+  return [...uploaded, ...DEFAULT_DATASETS];
 }
 
 export async function combineDatasets(datasetIds: string[], name?: string): Promise<DatasetSummary> {
-  try {
-    const res = await fetch(`${API_BASE}/datasets/combine`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dataset_ids: datasetIds, name }),
-      signal: AbortSignal.timeout(4000)
-    });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<DatasetSummary>(`${API_BASE}/datasets/combine`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dataset_ids: datasetIds, name })
+  }, 3000);
+  if (remote && remote.id) return remote;
+
   return DEFAULT_DATASETS[0];
 }
 
@@ -130,53 +187,117 @@ export async function uploadDataset(file: File, name?: string): Promise<DatasetS
     const formData = new FormData();
     formData.append('file', file);
     if (name) formData.append('name', name);
-    
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(`${API_BASE}/datasets/upload`, {
       method: 'POST',
       body: formData,
-      signal: AbortSignal.timeout(5000)
+      signal: controller.signal
     });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
+    clearTimeout(timer);
+    if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      return await res.json();
+    }
+  } catch {
+    // Client-side fallback parsing
   }
-  return {
-    id: `custom_${Date.now().toString(36)}`,
-    name: name || file.name.replace(/\.[^/.]+$/, ""),
-    filename: file.name,
-    total_rows: 500,
-    total_columns: 12,
-    feature_names: DEFAULT_DATASETS[0].feature_names,
-    suggested_target: 'quality',
-    missing_values: {},
-    total_missing: 0,
-    duplicate_rows: 10,
-    data_types: {},
-    numerical_columns: DEFAULT_DATASETS[0].numerical_columns,
-    file_size_bytes: file.size
-  };
+
+  // Parse CSV client-side so custom uploads work seamlessly everywhere (Vercel, offline, etc.)
+  try {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+    const delimiter = lines[0].includes(';') ? ';' : ',';
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+
+    const parsedRows: Record<string, any>[] = [];
+    const maxRows = Math.min(lines.length - 1, 50);
+    for (let i = 1; i <= maxRows; i++) {
+      const values = lines[i].split(delimiter).map(v => v.trim().replace(/^["']|["']$/g, ''));
+      const rowObj: Record<string, any> = {};
+      headers.forEach((h, idx) => {
+        const val = values[idx];
+        const num = parseFloat(val);
+        rowObj[h] = !isNaN(num) && isFinite(num) ? num : val;
+      });
+      parsedRows.push(rowObj);
+    }
+
+    const numericalCols = headers.filter(h => {
+      if (parsedRows.length === 0) return true;
+      return typeof parsedRows[0][h] === 'number';
+    });
+
+    const datasetId = `custom_${Date.now().toString(36)}`;
+    const datasetName = name || file.name.replace(/\.[^/.]+$/, '');
+    const totalRows = Math.max(1, lines.length - 1);
+
+    const summary: DatasetSummary = {
+      id: datasetId,
+      name: datasetName,
+      filename: file.name,
+      total_rows: totalRows,
+      total_columns: headers.length,
+      feature_names: numericalCols.filter(c => c.toLowerCase() !== 'quality' && c.toLowerCase() !== 'target'),
+      suggested_target: headers.find(h => ['quality', 'target', 'label', 'class'].includes(h.toLowerCase())) || headers[headers.length - 1],
+      missing_values: {},
+      total_missing: 0,
+      duplicate_rows: 0,
+      data_types: {},
+      numerical_columns: numericalCols,
+      file_size_bytes: file.size
+    };
+
+    const preview: DatasetPreview = {
+      id: datasetId,
+      columns: headers,
+      rows: parsedRows,
+      total_rows: totalRows,
+      page: 1,
+      page_size: 50
+    };
+
+    customDatasets.set(datasetId, { summary, preview });
+    return summary;
+  } catch {
+    // If parsing fails, return synthetic dataset
+    return {
+      id: `custom_${Date.now().toString(36)}`,
+      name: name || file.name.replace(/\.[^/.]+$/, ''),
+      filename: file.name,
+      total_rows: 500,
+      total_columns: 12,
+      feature_names: DEFAULT_DATASETS[0].feature_names,
+      suggested_target: 'quality',
+      missing_values: {},
+      total_missing: 0,
+      duplicate_rows: 0,
+      data_types: {},
+      numerical_columns: DEFAULT_DATASETS[0].numerical_columns,
+      file_size_bytes: file.size
+    };
+  }
 }
 
 export async function fetchDatasetSummary(datasetId: string): Promise<DatasetSummary> {
-  try {
-    const res = await fetch(`${API_BASE}/datasets/${datasetId}/summary`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
+  const remote = await safeFetchJson<DatasetSummary>(`${API_BASE}/datasets/${datasetId}/summary`, {}, 2000);
+  if (remote && remote.id) return remote;
+
+  if (customDatasets.has(datasetId)) {
+    return customDatasets.get(datasetId)!.summary;
   }
   const found = DEFAULT_DATASETS.find(d => d.id === datasetId);
   return found || DEFAULT_DATASETS[0];
 }
 
 export async function fetchDatasetPreview(datasetId: string, page = 1, pageSize = 50): Promise<DatasetPreview> {
-  try {
-    const res = await fetch(`${API_BASE}/datasets/${datasetId}/preview?page=${page}&page_size=${pageSize}`, {
-      signal: AbortSignal.timeout(3000)
-    });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
+  const remote = await safeFetchJson<DatasetPreview>(`${API_BASE}/datasets/${datasetId}/preview?page=${page}&page_size=${pageSize}`, {}, 2000);
+  if (remote && remote.rows) return remote;
+
+  if (customDatasets.has(datasetId)) {
+    return customDatasets.get(datasetId)!.preview;
   }
+
   const columns = DEFAULT_DATASETS[0].numerical_columns;
   const mockRows = Array.from({ length: pageSize }, (_, i) => ({
     'fixed acidity': +(7.0 + Math.sin(i + page) * 1.5).toFixed(1),
@@ -203,12 +324,9 @@ export async function fetchDatasetPreview(datasetId: string, page = 1, pageSize 
 }
 
 export async function fetchDatasetCorrelations(datasetId: string): Promise<CorrelationData> {
-  try {
-    const res = await fetch(`${API_BASE}/datasets/${datasetId}/correlations`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<CorrelationData>(`${API_BASE}/datasets/${datasetId}/correlations`, {}, 2000);
+  if (remote && remote.matrix) return remote;
+
   const features = DEFAULT_DATASETS[0].numerical_columns;
   const matrix = features.map((_, i) =>
     features.map((_, j) => (i === j ? 1.0 : +(Math.sin(i * 3 + j * 7) * 0.45).toFixed(3)))
@@ -230,20 +348,14 @@ export async function trainModel(payload: {
   experiment_name?: string;
   classification_mode?: 'multiclass' | 'binary';
 }): Promise<ModelMetricsResponse> {
-  try {
-    const res = await fetch(`${API_BASE}/models/train`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(8000)
-    });
-    if (res.ok) {
-      const data: ModelMetricsResponse = await res.json();
-      clientModelCache.set(data.model_id, data);
-      return data;
-    }
-  } catch (e) {
-    // Fallback for offline / Vercel cloud execution
+  const remote = await safeFetchJson<ModelMetricsResponse>(`${API_BASE}/models/train`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }, 8000);
+  if (remote && remote.model_id) {
+    clientModelCache.set(remote.model_id, remote);
+    return remote;
   }
 
   // Client-side fallback metrics computation
@@ -364,21 +476,30 @@ export async function trainModel(payload: {
   };
 
   clientModelCache.set(modelId, result);
+  clientExperiments.unshift({
+    id: result.experiment_id,
+    name: payload.experiment_name || `${result.algorithm_name} on ${result.dataset_name}`,
+    algorithm: result.algorithm_name,
+    dataset_name: result.dataset_name,
+    task_type: result.task_type,
+    target_column: result.target_column,
+    hyperparameters: result.hyperparameters,
+    metrics: result.classification_metrics
+      ? { accuracy: result.classification_metrics.accuracy, f1_macro: result.classification_metrics.f1_macro }
+      : { r2_score: result.regression_metrics?.r2_score, mae: result.regression_metrics?.mae },
+    status: 'COMPLETED',
+    created_at: result.created_at
+  });
   return result;
 }
 
 export async function predictModel(modelId: string, features: Record<string, number>): Promise<PredictResponse> {
-  try {
-    const res = await fetch(`${API_BASE}/models/${modelId}/predict`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model_id: modelId, features }),
-      signal: AbortSignal.timeout(3000)
-    });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<PredictResponse>(`${API_BASE}/models/${modelId}/predict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model_id: modelId, features })
+  }, 3000);
+  if (remote && remote.prediction !== undefined) return remote;
 
   // Realistic heuristic chemical quality estimate
   const alc = features['alcohol'] || 10.5;
@@ -409,21 +530,16 @@ export async function predictModel(modelId: string, features: Record<string, num
 }
 
 export async function explainModel(modelId: string, sampleIndex = 0, customFeatures?: Record<string, number>): Promise<ExplainResponse> {
-  try {
-    const res = await fetch(`${API_BASE}/models/${modelId}/explain`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model_id: modelId,
-        sample_index: sampleIndex,
-        custom_features: customFeatures
-      }),
-      signal: AbortSignal.timeout(4000)
-    });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<ExplainResponse>(`${API_BASE}/models/${modelId}/explain`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model_id: modelId,
+      sample_index: sampleIndex,
+      custom_features: customFeatures
+    })
+  }, 4000);
+  if (remote && remote.global_importance) return remote;
 
   const features = DEFAULT_DATASETS[0].feature_names;
   const contributions = [
@@ -466,17 +582,12 @@ export async function explainModel(modelId: string, sampleIndex = 0, customFeatu
 }
 
 export async function compareModels(modelIds: string[]): Promise<ModelComparisonResponse> {
-  try {
-    const res = await fetch(`${API_BASE}/models/compare`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model_ids: modelIds }),
-      signal: AbortSignal.timeout(3000)
-    });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<ModelComparisonResponse>(`${API_BASE}/models/compare`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model_ids: modelIds })
+  }, 3000);
+  if (remote && remote.winning_model) return remote;
 
   const m1 = clientModelCache.get(modelIds[0]) || {
     model_id: modelIds[0],
@@ -511,12 +622,9 @@ export async function compareModels(modelIds: string[]): Promise<ModelComparison
 }
 
 export async function fetchModelMetrics(modelId: string): Promise<ModelMetricsResponse> {
-  try {
-    const res = await fetch(`${API_BASE}/models/${modelId}/metrics`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
-  }
+  const remote = await safeFetchJson<ModelMetricsResponse>(`${API_BASE}/models/${modelId}/metrics`, {}, 3000);
+  if (remote && remote.model_id) return remote;
+
   const cached = clientModelCache.get(modelId);
   if (cached) return cached;
   // Synthesize default Random Forest model metrics
@@ -563,39 +671,12 @@ export async function fetchModelMetrics(modelId: string): Promise<ModelMetricsRe
 }
 
 export async function fetchExperiments(): Promise<{ experiments: ExperimentItem[]; total: number }> {
-  try {
-    const res = await fetch(`${API_BASE}/experiments`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) return await res.json();
-  } catch (e) {
-    // Fallback
+  const remote = await safeFetchJson<{ experiments: ExperimentItem[]; total: number }>(`${API_BASE}/experiments`, {}, 3000);
+  if (remote && Array.isArray(remote.experiments) && remote.experiments.length > 0) {
+    return remote;
   }
   return {
-    experiments: [
-      {
-        id: 'exp_combined_rf',
-        name: 'Random Forest on Combined Wine',
-        algorithm: 'Random Forest',
-        dataset_name: 'Wine Quality (Combined Red & White)',
-        task_type: 'classification',
-        target_column: 'quality',
-        hyperparameters: { n_estimators: 100, max_depth: null },
-        metrics: { accuracy: 0.6887, f1_macro: 0.385 },
-        status: 'COMPLETED',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 'exp_combined_knn',
-        name: 'KNN on Combined Wine',
-        algorithm: 'K-Nearest Neighbors (KNN)',
-        dataset_name: 'Wine Quality (Combined Red & White)',
-        task_type: 'classification',
-        target_column: 'quality',
-        hyperparameters: { n_neighbors: 5, weights: 'distance' },
-        metrics: { accuracy: 0.6421, f1_macro: 0.391 },
-        status: 'COMPLETED',
-        created_at: new Date(Date.now() - 3600000).toISOString()
-      }
-    ],
-    total: 2
+    experiments: clientExperiments,
+    total: clientExperiments.length
   };
 }
