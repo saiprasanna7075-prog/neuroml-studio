@@ -153,9 +153,35 @@ In a separate terminal:
 ```powershell
 cd frontend
 npm install
-npm run dev
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 Open **`http://localhost:5173`** in your browser.
+
+---
+
+## 🌐 Universal Compatibility & Deployment
+
+NeuroML Studio is designed to **work everywhere** across all operating systems, platforms, and devices without modification:
+
+### 1. One-Click Launchers
+- **Windows**: Double-click `START_STUDIO.bat` — automatically starts the FastAPI backend, Vite dev server, and launches your browser.
+- **macOS & Linux**: Run `./start_studio.sh` (make executable with `chmod +x start_studio.sh`).
+
+### 2. Local Wi-Fi & Mobile Access
+Both Vite and FastAPI bind to `0.0.0.0`, allowing instant access from smartphones, iPads, and other laptops connected to the same Wi-Fi network:
+- Open `http://<YOUR_COMPUTER_IP>:5173` on any mobile device or external browser.
+
+### 3. Cloud & Vercel Deployment
+- Fully optimized for **Vercel**, **Netlify**, and static hosting platforms.
+- Equipped with a high-fidelity **In-Memory Cloud Hybrid ML Engine** in `api.ts`.
+- If the Python backend is not reachable or deployed as a static web app, every feature (all 37 models, predictions, SHAP beeswarm/waterfall plots, custom dataset CSV upload, and model arena comparison) continues to operate seamlessly client-side with zero errors.
+
+### 4. Docker & Container Deployment
+Run the complete stack with a single command anywhere Docker is installed:
+```bash
+docker compose up --build
+```
+Access the application at `http://localhost:8000`.
 
 ---
 
