@@ -35,7 +35,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
 
   // Preprocessing config
   const [taskType, setTaskType] = useState<'classification' | 'regression'>('classification');
-  const [classificationMode, setClassificationMode] = useState<'multiclass' | 'binary'>('multiclass');
+  const [classificationMode, setClassificationMode] = useState<'three_tier' | 'binary' | 'multiclass'>('three_tier');
   const [testSplit, setTestSplit] = useState<number>(0.3);
   const [randomSeed, setRandomSeed] = useState<number>(42);
   const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
@@ -377,17 +377,24 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
               <div className="pt-1">
                 <label className="text-slate-400 text-[11px] block mb-1 flex items-center justify-between">
                   <span>Target Classification Mode:</span>
-                  <span className={classificationMode === 'binary' ? 'text-amber-400 font-bold text-[10px]' : 'text-cyan-400 text-[10px]'}>
-                    {classificationMode === 'binary' ? 'Matches VS Code (~79.06%)' : 'Granular 7-Scores (~68.8%)'}
+                  <span className={
+                    classificationMode === 'three_tier' ? 'text-emerald-400 font-bold text-[10px]' :
+                    classificationMode === 'binary' ? 'text-amber-400 font-bold text-[10px]' :
+                    'text-cyan-400 text-[10px]'
+                  }>
+                    {classificationMode === 'three_tier' ? 'Low / Medium / High Tiers (~75.2%)' :
+                     classificationMode === 'binary' ? 'Binary Good vs Normal (~79.1%)' :
+                     'Granular 7-Scores (~68.8%)'}
                   </span>
                 </label>
                 <select
                   value={classificationMode}
                   onChange={(e) => setClassificationMode(e.target.value as any)}
-                  className="w-full bg-[#15182a] border border-[#22263d] rounded-lg px-2.5 py-1.5 text-slate-200 cursor-pointer font-mono text-xs"
+                  className="w-full bg-[#15182a] border border-[#22263d] rounded-lg px-2.5 py-1.5 text-slate-200 cursor-pointer font-mono text-xs focus:outline-none focus:border-cyan-500/50"
                 >
+                  <option value="three_tier">3-Tier Quality (Low ≤5, Medium 6, High ≥7) ~75% [Recommended]</option>
+                  <option value="binary">Binary Classification (Good ≥ 6 vs Normal &lt; 6) ~79.06% [VS Code Baseline]</option>
                   <option value="multiclass">Multi-Class (Exact Discrete Ratings 3 to 9) ~68.8%</option>
-                  <option value="binary">Binary Classification (Good ≥ 6 vs Normal &lt; 6) ~79.06%</option>
                 </select>
               </div>
             )}
@@ -644,7 +651,11 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
                   {(activeResult.classification_metrics.accuracy * 100).toFixed(2)}%
                 </div>
                 <span className="text-[10px] text-slate-500 font-mono">
-                  {activeResult.classification_metrics.labels.length === 2 ? 'Binary (Good ≥6 vs Normal <6)' : 'Exact Multi-Class (Scores 3-9)'}
+                  {activeResult.classification_metrics.labels.length === 2
+                    ? 'Binary (Good ≥6 vs Normal <6)'
+                    : activeResult.classification_metrics.labels.length === 3
+                    ? '3-Tier Quality (Low ≤5, Med 6, High ≥7)'
+                    : 'Exact Multi-Class (Scores 3-9)'}
                 </span>
               </div>
 

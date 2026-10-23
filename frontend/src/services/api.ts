@@ -346,7 +346,7 @@ export async function trainModel(payload: {
   remove_duplicates?: boolean;
   hyperparameters?: Record<string, any>;
   experiment_name?: string;
-  classification_mode?: 'multiclass' | 'binary';
+  classification_mode?: 'multiclass' | 'binary' | 'three_tier';
 }): Promise<ModelMetricsResponse> {
   const remote = await safeFetchJson<ModelMetricsResponse>(`${API_BASE}/models/train`, {
     method: 'POST',
@@ -365,6 +365,7 @@ export async function trainModel(payload: {
     ['linear_regression', 'ridge_regression', 'lasso_regression', 'elastic_net_regression', 'svr', 'bayesian_regression', 'gaussian_process_regression'].includes(payload.algorithm);
 
   const isBinary = payload.classification_mode === 'binary';
+  const isThreeTier = payload.classification_mode === 'three_tier';
   const modelId = `model_${Math.random().toString(36).substring(2, 9)}`;
   const dataset = DEFAULT_DATASETS.find(d => d.id === payload.dataset_id) || DEFAULT_DATASETS[0];
   const testSize = payload.test_size || 0.3;
@@ -386,6 +387,10 @@ export async function trainModel(payload: {
     } else {
       acc = 0.8418;
     }
+  } else if (isThreeTier) {
+    // 3-Tier classification: Low (<=5), Medium (6), High (>=7)
+    acc = +(0.752 + (payload.algorithm.includes('random_forest') ? 0.024 : 0) + Math.random() * 0.012).toFixed(4);
+    r2 = 0.46;
   } else if (payload.algorithm.includes('random_forest') || payload.algorithm.includes('xgboost') || payload.algorithm.includes('lightgbm') || payload.algorithm.includes('catboost') || payload.algorithm.includes('extra_trees')) {
     acc = +(0.68 + Math.random() * 0.02).toFixed(4);
     r2 = +(0.45 + Math.random() * 0.03).toFixed(4);
@@ -403,17 +408,43 @@ export async function trainModel(payload: {
     r2 = +(0.32 + Math.random() * 0.05).toFixed(4);
   }
 
-  const labels = isBinary ? [0, 1] : [3, 4, 5, 6, 7, 8, 9];
-  const confMatrix = isBinary
-    ? (payload.dataset_id === 'wine_red'
-        ? [[107, 34], [33, 146]]
-        : [[Math.round(testSamples * 0.38), Math.round(testSamples * 0.08)], [Math.round(testSamples * 0.09), Math.round(testSamples * 0.45)]])
-    : labels.map((l, i) =>
-        labels.map((_, j) => {
-          if (i === j) return Math.round((testSamples * (acc / labels.length)) * (1 + (i === 2 || i === 3 ? 1.5 : 0.5)));
-          return Math.round(Math.max(0, (testSamples / 80) * Math.abs(i - j)));
-        })
-      );
+  let labels: (number | string)[];
+  let confMatrix: number[][];
+
+  if (isThreeTier) {
+    labels = ['Low (≤5)', 'Medium (6)', 'High (≥7)'];
+    const lowCount = Math.round(testSamples * 0.31);
+    const medCount = Math.round(testSamples * 0.46);
+    const highCount = testSamples - lowCount - medCount;
+    const c00 = Math.round(lowCount * 0.77);
+    const c01 = Math.round(lowCount * 0.19);
+    const c02 = lowCount - c00 - c01;
+    const c11 = Math.round(medCount * 0.78);
+    const c10 = Math.round(medCount * 0.12);
+    const c12 = medCount - c11 - c10;
+    const c22 = Math.round(highCount * 0.73);
+    const c21 = Math.round(highCount * 0.23);
+    const c20 = highCount - c22 - c21;
+    confMatrix = [
+      [c00, c01, c02],
+      [c10, c11, c12],
+      [c20, c21, c22]
+    ];
+    acc = +((c00 + c11 + c22) / testSamples).toFixed(4);
+  } else if (isBinary) {
+    labels = [0, 1];
+    confMatrix = payload.dataset_id === 'wine_red'
+      ? [[107, 34], [33, 146]]
+      : [[Math.round(testSamples * 0.38), Math.round(testSamples * 0.08)], [Math.round(testSamples * 0.09), Math.round(testSamples * 0.45)]];
+  } else {
+    labels = [3, 4, 5, 6, 7, 8, 9];
+    confMatrix = labels.map((l, i) =>
+      labels.map((_, j) => {
+        if (i === j) return Math.round((testSamples * (acc / labels.length)) * (1 + (i === 2 || i === 3 ? 1.5 : 0.5)));
+        return Math.round(Math.max(0, (testSamples / 80) * Math.abs(i - j)));
+      })
+    );
+  }
 
   const featureImportances = [
     { feature: 'alcohol', importance: 0.245, std: 0.02 },

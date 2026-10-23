@@ -49,7 +49,12 @@ def predict_single(
     # Format output
     if task_type == "classification":
         prediction_val = int(pred) if isinstance(pred, (np.integer, int)) else str(pred)
-        explanation = f"Model predicts Wine Quality Class {prediction_val} on the standard discrete scale (range 3-9)."
+        if str(prediction_val).startswith(("Low", "Medium", "High")):
+            explanation = f"Model predicts Wine Quality Tier: {prediction_val}."
+        elif str(prediction_val) in ("0", "1"):
+            explanation = f"Model predicts Wine Quality Class {prediction_val} ({'High Quality ≥6' if str(prediction_val) == '1' else 'Low/Normal Quality <6'})."
+        else:
+            explanation = f"Model predicts Wine Quality Class {prediction_val} on the standard discrete scale (range 3-9)."
     else:
         prediction_val = round(float(pred), 2)
         explanation = f"Model estimates continuous Wine Quality Score of {prediction_val}."
