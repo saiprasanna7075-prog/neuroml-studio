@@ -81,23 +81,23 @@ export const ConfusionMatrixChart: React.FC<ConfusionMatrixProps> = ({ matrix, l
     }
 
     if (isAlreadyThreeTier || labels.length === 3) {
-      if (s.includes('low') || s.includes('≤5') || (index === 0 && !isNaN(num))) {
+      if (s.includes('low') || s.includes('≤4') || s.includes('≤5') || (index === 0 && !isNaN(num))) {
         return {
           tier: 'low',
-          badge: 'Low (≤5)',
+          badge: 'Low (≤4)',
           name: 'Low Quality',
-          sub: 'Scores 3–5',
+          sub: 'Scores 3–4',
           colorHex: '#f43f5e',
           badgeBg: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
           borderCol: 'border-rose-500/40'
         };
       }
-      if (s.includes('med') || s.includes('6') || (index === 1 && !isNaN(num))) {
+      if (s.includes('med') || s.includes('5-6') || s.includes('6') || (index === 1 && !isNaN(num))) {
         return {
           tier: 'medium',
-          badge: 'Medium (6)',
+          badge: 'Medium (5-6)',
           name: 'Medium Quality',
-          sub: 'Score 6',
+          sub: 'Scores 5–6',
           colorHex: '#f59e0b',
           badgeBg: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
           borderCol: 'border-amber-500/40'
@@ -115,23 +115,23 @@ export const ConfusionMatrixChart: React.FC<ConfusionMatrixProps> = ({ matrix, l
     }
 
     if (!isNaN(num) && num >= 3 && num <= 9) {
-      if (num <= 5) {
+      if (num <= 4) {
         return {
           tier: 'low',
           badge: `Q${num} (Low)`,
           name: `Score ${num} (Low)`,
-          sub: 'Low Quality (≤5)',
+          sub: 'Low Quality (≤4)',
           colorHex: '#f43f5e',
           badgeBg: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
           borderCol: 'border-rose-500/40'
         };
       }
-      if (num === 6) {
+      if (num <= 6) {
         return {
           tier: 'medium',
-          badge: `Q6 (Med)`,
-          name: 'Score 6 (Medium)',
-          sub: 'Medium Quality (6)',
+          badge: `Q${num} (Med)`,
+          name: `Score ${num} (Medium)`,
+          sub: 'Medium Quality (5-6)',
           colorHex: '#f59e0b',
           badgeBg: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
           borderCol: 'border-amber-500/40'
@@ -173,16 +173,16 @@ export const ConfusionMatrixChart: React.FC<ConfusionMatrixProps> = ({ matrix, l
       ];
       matrix.forEach((row, r) => {
         const rowVal = Number(labels[r]);
-        const rowTier = rowVal <= 5 ? 0 : rowVal === 6 ? 1 : 2;
+        const rowTier = rowVal <= 4 ? 0 : rowVal <= 6 ? 1 : 2;
         row.forEach((val, c) => {
           const colVal = Number(labels[c]);
-          const colTier = colVal <= 5 ? 0 : colVal === 6 ? 1 : 2;
+          const colTier = colVal <= 4 ? 0 : colVal <= 6 ? 1 : 2;
           aggMatrix[rowTier][colTier] += val;
         });
       });
       return {
         matrix: aggMatrix,
-        labels: ['Low (≤5)', 'Medium (6)', 'High (≥7)']
+        labels: ['Low (≤4)', 'Medium (5-6)', 'High (≥7)']
       };
     }
 
@@ -286,7 +286,7 @@ export const ConfusionMatrixChart: React.FC<ConfusionMatrixProps> = ({ matrix, l
               <div className="font-semibold text-rose-300 flex items-center gap-1.5">
                 <span>Low Quality</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-200 font-mono">
-                  Scores ≤ 5
+                  Scores ≤ 4
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-tight mt-0.5">
@@ -301,7 +301,7 @@ export const ConfusionMatrixChart: React.FC<ConfusionMatrixProps> = ({ matrix, l
               <div className="font-semibold text-amber-300 flex items-center gap-1.5">
                 <span>Medium Quality</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 font-mono">
-                  Score 6
+                  Scores 5–6
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-tight mt-0.5">

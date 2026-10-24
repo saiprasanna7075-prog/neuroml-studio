@@ -38,19 +38,19 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
   const [classificationMode, setClassificationMode] = useState<'three_tier' | 'binary' | 'multiclass'>('three_tier');
   const [testSplit, setTestSplit] = useState<number>(0.3);
   const [randomSeed, setRandomSeed] = useState<number>(42);
-  const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
+  const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(true); // Default true matching Colab deduplication
 
   // Model Selection
   const [activeModelTab, setActiveModelTab] = useState<'rf' | 'knn'>('rf');
 
-  // Random Forest Hyperparameters
-  const [rfTrees, setRfTrees] = useState<number>(100);
+  // Random Forest Hyperparameters (Matching Colab defaults)
+  const [rfTrees, setRfTrees] = useState<number>(300);
   const [rfMaxDepth, setRfMaxDepth] = useState<string>('None');
   const [rfMinSplit, setRfMinSplit] = useState<number>(2);
-  const [rfMinLeaf, setRfMinLeaf] = useState<number>(1);
+  const [rfMinLeaf, setRfMinLeaf] = useState<number>(2);
 
-  // KNN Hyperparameters
-  const [knnK, setKnnK] = useState<number>(5);
+  // KNN Hyperparameters (Matching Colab optimal K=7)
+  const [knnK, setKnnK] = useState<number>(7);
   const [knnMetric, setKnnMetric] = useState<'euclidean' | 'manhattan'>('euclidean');
   const [knnWeights, setKnnWeights] = useState<'uniform' | 'distance'>('distance');
 
@@ -214,16 +214,28 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
           </p>
         </div>
 
-        {/* Action shortcut to compare arena */}
-        {rfResult && knnResult && onNavigateToArena && (
-          <button
-            onClick={() => onNavigateToArena(rfResult.model_id, knnResult.model_id)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-mono font-medium flex items-center gap-2 shadow-lg shadow-violet-600/30 cursor-pointer"
+        {/* Action shortcuts */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <a
+            href="https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-mono font-medium flex items-center gap-2 shadow-sm transition-all hover:scale-105"
           >
-            <Sparkles className="w-4 h-4 text-cyan-300" />
-            <span>Compare RF vs KNN in Arena</span>
-          </button>
-        )}
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span>Open in Google Colab ↗</span>
+          </a>
+
+          {rfResult && knnResult && onNavigateToArena && (
+            <button
+              onClick={() => onNavigateToArena(rfResult.model_id, knnResult.model_id)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-mono font-medium flex items-center gap-2 shadow-lg shadow-violet-600/30 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-cyan-300" />
+              <span>Compare RF vs KNN in Arena</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {errorMsg && (
@@ -382,7 +394,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
                     classificationMode === 'binary' ? 'text-amber-400 font-bold text-[10px]' :
                     'text-cyan-400 text-[10px]'
                   }>
-                    {classificationMode === 'three_tier' ? 'Low / Medium / High Tiers (~75.2%)' :
+                    {classificationMode === 'three_tier' ? 'Colab 3-Tier: Low ≤4, Med 5-6, High ≥7 (~76-78%)' :
                      classificationMode === 'binary' ? 'Binary Good vs Normal (~79.1%)' :
                      'Granular 7-Scores (~68.8%)'}
                   </span>
@@ -392,7 +404,7 @@ export const WineQualityPage: React.FC<WineQualityPageProps> = ({
                   onChange={(e) => setClassificationMode(e.target.value as any)}
                   className="w-full bg-[#15182a] border border-[#22263d] rounded-lg px-2.5 py-1.5 text-slate-200 cursor-pointer font-mono text-xs focus:outline-none focus:border-cyan-500/50"
                 >
-                  <option value="three_tier">3-Tier Quality (Low ≤5, Medium 6, High ≥7) ~75% [Recommended]</option>
+                  <option value="three_tier">3-Tier Quality (Low ≤4, Medium 5-6, High ≥7) ~76-78% [Colab Standard]</option>
                   <option value="binary">Binary Classification (Good ≥ 6 vs Normal &lt; 6) ~79.06% [VS Code Baseline]</option>
                   <option value="multiclass">Multi-Class (Exact Discrete Ratings 3 to 9) ~68.8%</option>
                 </select>

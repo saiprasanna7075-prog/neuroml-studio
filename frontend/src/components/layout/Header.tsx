@@ -71,6 +71,18 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Quick Launch Buttons */}
       <div className="flex items-center gap-2.5">
+        <a
+          href="https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open original Google Colab Notebook with Random Forest, KNN & SHAP"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 text-xs font-medium transition-all cursor-pointer shadow-sm hover:scale-105"
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="font-mono font-semibold">Google Colab</span>
+          <span className="text-[10px]">↗</span>
+        </a>
+
         <button
           onClick={() => setActiveTab('demo')}
           className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600/30 via-indigo-600/30 to-cyan-500/20 hover:from-violet-600/40 hover:to-cyan-500/30 border border-violet-500/40 text-violet-200 text-xs font-semibold shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:shadow-[0_0_22px_rgba(139,92,246,0.35)] transition-all cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"

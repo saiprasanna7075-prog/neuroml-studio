@@ -145,14 +145,14 @@ def prepare_data_pipeline(
             y = (cleaned_df[target_column] >= 6).astype(int).values
             stratify = None
         elif classification_mode in ("three_tier", "ternary", "3tier", "3-tier") and target_column == "quality":
-            # 3-Tier Quality: Low (<=5), Medium (6), High (>=7)
+            # 3-Tier Quality from Colab: Low (<=4), Medium (5-6), High (>=7)
             conditions = [
-                cleaned_df[target_column] <= 5,
-                cleaned_df[target_column] == 6,
+                cleaned_df[target_column] <= 4,
+                (cleaned_df[target_column] >= 5) & (cleaned_df[target_column] <= 6),
                 cleaned_df[target_column] >= 7
             ]
-            choices = ["Low (≤5)", "Medium (6)", "High (≥7)"]
-            y = np.select(conditions, choices, default="Medium (6)").astype(str)
+            choices = ["Low (≤4)", "Medium (5-6)", "High (≥7)"]
+            y = np.select(conditions, choices, default="Medium (5-6)").astype(str)
             stratify = y if len(np.unique(y)) > 1 and min(pd.Series(y).value_counts()) >= 2 else None
         else:
             # Multi-class classification: exact discrete ratings (3-9)
@@ -179,7 +179,7 @@ def prepare_data_pipeline(
         
     if task_type == "classification":
         if classification_mode in ("three_tier", "ternary", "3tier", "3-tier") and target_column == "quality":
-            unique_classes = ["Low (≤5)", "Medium (6)", "High (≥7)"]
+            unique_classes = ["Low (≤4)", "Medium (5-6)", "High (≥7)"]
         elif classification_mode == "binary" and target_column == "quality":
             unique_classes = [0, 1]
         else:

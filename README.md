@@ -3,6 +3,44 @@
 > **"Explore Intelligence. Understand Predictions."**  
 > An interactive 3D AI and Machine Learning research platform to train models, compare algorithms, visualize predictions, and explain AI decisions with SHAP. Flagship project: Physicochemical Wine Quality Prediction using Random Forest and K-Nearest Neighbors.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing)
+[![Live Web Application](https://img.shields.io/badge/Live_Website-GitHub_Pages-06b6d4?style=for-the-badge&logo=github)](https://saiprasanna7075-prog.github.io/neuroml-studio/)
+[![Jupyter Notebook](https://img.shields.io/badge/Jupyter-wine__quality__rf__vs__knn.ipynb-F37626?style=for-the-badge&logo=jupyter)](notebooks/wine_quality_rf_vs_knn.ipynb)
+
+---
+
+## 📓 Google Colab Notebook & Machine Learning Pipeline
+
+The entire machine learning research pipeline is available both as an interactive **Google Colab Notebook** and as a fully interactive **Web Platform**:
+
+* 🔗 **Google Colab (Cloud Execution)**: [Open in Google Colab](https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing)
+* 📁 **Repository Notebook**: [`notebooks/wine_quality_rf_vs_knn.ipynb`](notebooks/wine_quality_rf_vs_knn.ipynb)
+* 🐍 **CLI Script**: [`scripts/wine_quality_rf_vs_knn.py`](scripts/wine_quality_rf_vs_knn.py)
+* 🌐 **Live 3D Web Application**: [https://saiprasanna7075-prog.github.io/neuroml-studio/](https://saiprasanna7075-prog.github.io/neuroml-studio/)
+
+### Pipeline Architecture:
+1. **Data Preprocessing & EDA**:
+   - Automated missing value inspection and visual heatmap
+   - Removal of duplicate samples (`df.drop_duplicates()`)
+   - Feature distribution histograms and box plots for all 11 physicochemical attributes
+2. **Quality Target Bucketing (3-Tier Formulation)**:
+   - 🔴 **Low Quality**: Ratings `≤ 4` (Scores 3, 4) — Sub-standard / high volatile acidity
+   - 🟡 **Medium Quality**: Ratings `5 to 6` (Scores 5, 6) — Commercial table wine standard (~75% of dataset)
+   - 🟢 **High Quality**: Ratings `≥ 7` (Scores 7, 8, 9) — Fine reserve vintage
+   *(Optionally configurable to exact discrete 3–9 scores or binary Good vs Normal)*
+3. **Random Forest Classifier**:
+   - `n_estimators=300`, `min_samples_leaf=2`, `class_weight='balanced'`, `random_state=42`
+   - 5-Fold Stratified Cross Validation on training split (70:30)
+   - High-fidelity Gini feature importance ranking
+   - Full **SHAP (SHapley Additive exPlanations)**: TreeExplainer, Beeswarm Summary, Mean |SHAP| Bar Plot, and local single-sample Waterfall plot
+4. **K-Nearest Neighbors (KNN) Classifier**:
+   - Leak-free `StandardScaler()` fit strictly on training partitions
+   - Systematic hyperparameter search across `K = 1 to 15` with 5-fold CV to determine optimal `K` (typically `K = 7`)
+   - Evaluation with Confusion Matrix, Weighted Precision, Recall, and F1-score
+5. **Model Arena Head-to-Head Comparison**:
+   - Side-by-side performance evaluation table and comparative multi-metric bar charts
+   - Automated champion selection based on test accuracy and generalization fidelity
+
 ---
 
 ## 🌟 Executive Summary
