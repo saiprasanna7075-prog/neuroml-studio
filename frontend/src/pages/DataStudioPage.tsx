@@ -83,6 +83,18 @@ export const DataStudioPage: React.FC = () => {
             <GitMerge className="w-3.5 h-3.5 text-violet-400" />
             <span>Combine Red & White (6,497)</span>
           </button>
+
+          {activeDataset && (
+            <a
+              href={`./data/${activeDataset.filename}`}
+              download={activeDataset.filename}
+              className="px-3 py-2 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 rounded-xl text-xs font-mono text-emerald-300 flex items-center gap-1.5 transition-all shadow-sm hover:scale-105"
+              title={`Download ${activeDataset.name} CSV`}
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Download CSV</span>
+            </a>
+          )}
         </div>
       </div>
 
