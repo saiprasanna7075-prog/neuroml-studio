@@ -6,6 +6,7 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing)
 [![Live Web Application](https://img.shields.io/badge/Live_Website-GitHub_Pages-06b6d4?style=for-the-badge&logo=github)](https://saiprasanna7075-prog.github.io/neuroml-studio/)
 [![Jupyter Notebook](https://img.shields.io/badge/Jupyter-wine__quality__rf__vs__knn.ipynb-F37626?style=for-the-badge&logo=jupyter)](notebooks/wine_quality_rf_vs_knn.ipynb)
+[![Datasets](https://img.shields.io/badge/Datasets-White%20%7C%20Red%20%7C%20Combined-emerald?style=for-the-badge&logo=databricks)](dataset/)
 
 ---
 
@@ -16,6 +17,10 @@ The entire machine learning research pipeline is available both as an interactiv
 * 🔗 **Google Colab (Cloud Execution)**: [Open in Google Colab](https://colab.research.google.com/drive/1NuY5aJ_2HAlA7Lp0iuy6ap9ZC-hOMrbo?usp=sharing)
 * 📁 **Repository Notebook**: [`notebooks/wine_quality_rf_vs_knn.ipynb`](notebooks/wine_quality_rf_vs_knn.ipynb)
 * 🐍 **CLI Script**: [`scripts/wine_quality_rf_vs_knn.py`](scripts/wine_quality_rf_vs_knn.py)
+* 📊 **Dataset Directory**: [`dataset/`](dataset/)
+  * ⚪ [`dataset/winequality-white.csv`](dataset/winequality-white.csv) (4,898 samples, 12 features)
+  * 🔴 [`dataset/winequality-red.csv`](dataset/winequality-red.csv) (1,599 samples, 12 features)
+  * 🍷 [`dataset/winequality-combined.csv`](dataset/winequality-combined.csv) (6,497 samples, 12 features)
 * 🌐 **Live 3D Web Application**: [https://saiprasanna7075-prog.github.io/neuroml-studio/](https://saiprasanna7075-prog.github.io/neuroml-studio/)
 
 ### Pipeline Architecture:
